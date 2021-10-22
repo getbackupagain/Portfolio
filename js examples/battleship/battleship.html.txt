@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+    <META charset="UTF-8" />
+    <META name="viewport" content="width=device-width, initial-scale=1.0" />
+    <META name="author" content="Destry" />
+    <META name="description" content="Naval warfare" />
+    <TITLE>Battleship</TITLE>
+	<SCRIPT src="main.js"></SCRIPT>
+	<SCRIPT src="resources.js"></SCRIPT>
+	<LINK rel="stylesheet" href="main.css"></LINK>
+
+</HEAD>
+<BODY onload = "newgame()">
+
+<H1 style="background-color:ForestGreen;text-align:center;" id="header">
+Destry's game of Battleship
+</H1>
+
+<MAIN id = "itsmain">
+<DIV id = "canvascol"><!--Eventually, I'd like to make the scale of the canvas adjusted to the window size-->
+<CANVAS onclick = "move(event)" height = "500" width = "500" id = "bship" style="border:1px solid #000000;"></CANVAS>
+</DIV>
+
+<DIV id = "menucol"><!--Holds the buttons-->
+<BUTTON id = "exit" onclick = "exitgame()">Exit</BUTTON><!--Eventually, I want to add a setting menu, once more functionality has been added-->
+<BUTTON id = "scrnswp" onclick = "defensiveview()">Offensive View</BUTTON>
+<BR></BR>
+<BUTTON id = "rpeg" onclick = "selctredpeg()">Red</BUTTON><!--Right now, the pegs update automatically, but eventually, I want it to be like real battleship-->
+<BUTTON id = "wpeg" onclick = "selctwhtpeg()">White</BUTTON><!--where you have to choose a spot every turn, and they have to answer truthfully, but placing pegs is still up to you-->
+<BR></BR>
+<BUTTON id = "rmovepeg" onclick = "removepeg()">Remove</BUTTON>
+<BUTTON id = "turntake" onclick = "taketurn()">Take a turn</BUTTON>
+</DIV>
+</MAIN>
+
+</BODY>
+</HTML>

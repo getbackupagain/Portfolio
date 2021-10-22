@@ -1,0 +1,35 @@
+/*I was supposed to attempt to use css this time around
+But I never really got around to it
+The only functional thing this does right now
+is put the buttons to the side of the canvas instead of above or below it*/
+
+body {
+  background-color: lightblue;
+}
+
+h1 {
+  color: navy;
+  margin-left: 20px;
+}
+ #itsmain {
+        content: "";
+        display: table;
+        clear: both;
+	  align-items: center;
+      }
+      div {
+        float: left;
+      }
+      #canvascol {
+        background-color: #a1edcc;
+		  width:90%;
+		height:100%;
+		  display: flex;
+  align-items: center;
+      }
+      #menucol {
+        background-color: #a0e9ed;
+        width:10%;
+		height:100%;
+align-items: center;
+      }

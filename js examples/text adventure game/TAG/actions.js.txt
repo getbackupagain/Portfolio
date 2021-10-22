@@ -1,0 +1,108 @@
+//For organization purposes
+//this file contains all functions called by valid commands
+
+function laround(tbl)//Returns a message based on the value of "currentlocation" O(C)
+            {//Todo:
+				//add better, more informative messages
+
+            let r;
+
+	        if (currentlocation === "FIRST ROOM") r = "There is a table here, and a door with a lock.";
+            else if (currentlocation === "SECOND ROOM") r = "There is bookshelf here, and a door that is unlocked by answering a riddle.";
+            else if (currentlocation === "THIRD ROOM") r = "This room has a pretty clever slide puzzle, but everything looks a horrid color.";
+            else if (currentlocation === "FOURTH ROOM") r = "There's cage in here, and a door with a keypad and a warning.";
+            else cantunderstand();
+
+	        display(r);
+
+            };
+
+
+function gtwo(tbl)//Goes to a valid location specified by the user. O(C)
+           {//to do,
+	        //allow for less strict phrasing
+
+            if (tbl.length <4 || tbl.length >4){cantunderstand(); return;};
+            //for now, this function throws out any commands that aren't phrased exactly as "go to first-fourth room"
+			//but eventully I would like this to support things like "goto" or "room four"
+            if (tbl.length < 5 && tbl[1] === "TO" && tbl[3] === "ROOM")
+			        {
+
+	                if (tbl[2] === "FIRST") currentlocation = "FIRST ROOM";
+                    else if (tbl[2] === "SECOND") currentlocation = "SECOND ROOM";
+                    else if (tbl[2] === "THIRD") currentlocation = "THIRD ROOM";
+                    else if (tbl[2] === "FOURTH") currentlocation = "FOURTH ROOM";
+                    else {cantunderstand(); return;};
+                    };
+
+	        display("You are in the " + currentlocation.toLowerCase() );//displays updated location
+            };
+
+
+function place(tbl)//Places items in the dungeon as specified by the user, updates gamestate, and displays appropriate message. O(C)
+            {
+	//todo:
+	//add more error messages that are item specific
+	//make lion placement stricter
+	//make phrase parsing more forgiving
+	//add messages for when you have already succesfully placed an item
+
+	        if ( tbl.length >4){cantunderstand(); return;}
+	        else if (tbl[1]==="KEY"&& currentlocation === "FIRST ROOM"&& tbl[3] === "TABLE"){gamecondition.keyontable = true; display("Success")}
+            else if (tbl[1]==="BOOK"&& currentlocation === "SECOND ROOM"&& tbl[3] === "BOOKSHELF"){gamecondition.bookonshelf = true; display("Success")}
+	        else if (tbl[1]==="LION"&& currentlocation === "FOURTH ROOM"&& tbl[3] === "CAGE"){gamecondition.lionincage = true; display("Success")}
+	        else display("cant put that there");
+            };
+
+
+function paint(tbl)//Progresses the gamestate if used in the correct room, and displays the appropriate message. O(C)
+            {
+	//todo:
+	//add color functionality
+    //add more, and more colorful messages
+	//add a message for painting the lion
+
+	        if (tbl.length >1) {cantunderstand(); return;}
+	        else if (currentlocation === "THIRD ROOM"){gamecondition.roompainted = true; display("Success")}
+	        else display("looks nice, didn't really need it though");
+            };
+
+
+function help(tbl)//Displays information useful for navigating the game. O(C)
+            {//todo;
+			//Allow for topic specific help
+			//make help messages more helpful
+
+	        let l1 = 'Use "reflect" and "look around" for hints about progressing the game';
+	        let l2 = 'Use "go" to move freely through the four rooms ("go to first-fourth room")';
+	        let l3 = 'Place items like this "place x on/in y"';
+	        let l4 = 'Use "paint" to paint a room';
+	        let l5 = "Your items are a key, a book, and a lion";
+
+	        if (tbl > 1) {cantunderstand(); return;};
+	        display(l1);
+	        display(l2);
+	        display(l3);
+	        display(l4);
+	        display(l5);
+
+            };
+
+
+function reflect(tbl)//Similar to help, but this is for displaying random hints for progressing the game. O(C)
+            {//todo:
+				//make more messages, and more useful messages
+				//make messaages that are unlocked as the user progresses through the game
+
+	    let rand = (Math.floor(Math.random()*10)+1);
+        let cutoff = (Math.round(rand/2))-1;
+		var responses = ["Something violent should go into the cage in the fourth room.",
+						"I bet you need to leave something on the bookshelf in room two.",
+						"Since theres a lock on the door, room one should have someway to get out of it.",
+						"Room three could use a touch up.",
+						"Once everything is all set up, I bet you could leave."];
+		 if (tbl > 1) {cantunderstand(); return;};
+
+		display(responses[cutoff]);
+            };
+

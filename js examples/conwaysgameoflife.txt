@@ -1,0 +1,209 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+
+		<META charset="UTF-8" />
+		<META name="viewport" content="width=device-width,    initial-scale=1.0" />
+		<META name="author" content="Destry"/>
+		<META name="description" content="what this project is about"/>
+		<TITLE>CIS231 Sandbox</TITLE>
+
+</HEAD>
+
+<BODY><!- -->
+
+    <h1 style="background-color:ForestGreen;text-align:center;" id="header">
+    Destry's Game of Conway's game of Life!
+    </h1>
+
+    <div id = "bdv" style="text-align:center;"><!- Div for the user inputs-->
+    <LABEL for= "points">Cell Density</LABEL>
+    <INPUT id ="cutoff" type = "range" name = "density" min = "1" max = "100" value = "20"></INPUT><!- Sets the cutoff value for "deadoralive()"-->
+    <BUTTON id ="startconway" type ="button" onClick = "main()">New Game</BUTTON>
+    </div>
+
+    <br><!- This line break adds space between the canvas and the user inputs. It is purely for aesthetic purposes.-->
+
+    <div id ="cdv" style="text-align:center;"><!- Canvas where the gameboard is displayed-->
+    <CANVAS id ="conway"><!- Size is ultimately determined by "Gridmake()".-->
+    </CANVAS><!-No intitial size is given because the default size happens to be super convenient for displaying "p1" in the screen center on webpage loadup-->
+    </div>
+
+    <P id = "p1" style="text-align:center;"><!- some joke text to liven up the empty screen on load-->
+    Version 1.1: Afterlife patched out because it is a "memory leak".
+	    <br>
+	    Reincarnation has temporarily bypassed this problem.
+    </P>
+
+
+<Script type= "text/javascript">
+
+	//This is a program to run Conway's game of life.
+	//The board size is determined by the window size.
+	//The initial seed is randomly determined according to a user inputed density.
+	//New games are started by pressing the New Game button.
+	//Exiting the game occurs by closing the window.
+
+	//My version of the game was created on the inspiriation of a blog post by "LC" entitled "How I built Conway’s Game of Life in JavaScript" @ http://disruptive-communications.com/conwaylifejavascript/
+    //I only consulted it briefly at the start, to see if it could be done using canvas instead of tables,
+	//otherwise I don't think I looked at it at all once I dug into the actual coding.
+	//I think the only thing that ended up being similar is the multidimensional array creation, and I don't even remember which resource I learned that from.
+
+	//I consulted stackexchange.com endlessly because I often had dificulty understanding how my code was breaking
+	//but the actual solutions themselves were always my own (except when cited)
+
+
+    var grid = [];//holds the actual information about the gamestate.
+    const gx = 8;//Sets the cell size, and by extension the scaling of the "grid", and the actual display.
+    var gridx;//Holds the window's width.
+    var gridy;//Holds the window's height.
+
+
+    function updatewindowsize()//Updates the window size when called. O(C)
+	{
+		let limitx = 3840,//originally this function was only limited by screen size
+	        limity = 2160;//so hypothetically an absurdly large screen could return an absurdly large value
+        gridx = ((Math.floor(window.innerWidth/gx))*gx < limitx)? (Math.floor(window.innerWidth/gx))*gx: limitx;//therfore I have capped the return values
+        gridy = ((Math.floor(window.innerHeight/gx))*gx < limity)? (Math.floor(window.innerHeight/gx))*gx: limity;//at the resolution of a 4K screen
+    }//This is intended to prevent "gridmake()" from constructing an absurdly large grid
+
+    window.onload = updatewindowsize;//Not a function, but since they work in conjunction with the above function
+    window.onresize = updatewindowsize;//and not much else, placing them here makes better organizational sense.
+
+
+	function deadoralive()//sets the state of a cell's "alive" property. O(C)
+	{
+		var cf = document.getElementById("cutoff").value;//User input value, the default value is 20 because by quick mental estimation it produces the most interesting gameboard
+		var rand = Math.floor(Math.random()*100)+1;//a random number between 0 and 101 is generated
+
+	    if (rand > cf) return false;//the user input forms the cutoff, random numbers above the cutoff result in a dead cell
+	    else return true;//below the cutoff results in a living cell
+	};
+
+
+    function celldraw(cll)//Draws living and dead cells on the canvas "conway". O(C)
+	{
+	var canvas = document.getElementById("conway"),
+        ctx = canvas.getContext("2d");
+
+	    if (cll.alive == true)
+        {
+	        ctx.fillStyle = "#2DCF23";//living cells get a fancy look.
+            ctx.fillRect(cll.pixelX, cll.pixelY, gx, gx);
+			ctx.fillStyle = "#000000";
+            ctx.fillRect(cll.pixelX-1, cll.pixelY-1, gx-1, gx-1);
+			ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(cll.pixelX-2, cll.pixelY-2, gx-2, gx-2);
+	    }
+	    else
+	    {
+            ctx.fillStyle = "#7EF5DD";//dead cells become the background color.
+            ctx.fillRect(cll.pixelX, cll.pixelY, gx, gx)
+	    }
+	};
+
+
+    function gridmake()//Creates the initial gamestate when called. O(N^2)
+    {
+        grid = [];//Empties the gameboard
+		var canvas = document.getElementById("conway");
+
+
+		canvas.width = gridx;//updates canvas size to window size.
+		canvas.height = gridy;
+
+		for(y =0; y< (gridy/gx); y++)//Creates a multidimensional array based on the current window size.
+		{
+            var rw = [];
+
+		    for (x= 0; x<(gridx/gx); x++ )
+			{
+
+				var DoA = deadoralive();
+
+			    var cell = {
+                            alive:DoA,//This cell object was originally meant to have extra properties
+                            adjacentsum:0,//that were to enable the ocasional skipping of cells
+                            pixelX:x*gx,//and thereby reduce the number of operations needed to update the gameboard
+                            pixelY:y*gx,//however, every time I attempted to implement this
+                            pxr: function() {return this.pixelX;},//the extra operations needed to make this happen
+                            pyr: function() {return this.pixelY;}//outweighed the operations saved by skipping cells
+				            };
+
+			    rw.push(cell)
+			}
+
+		    grid.push(rw);
+	    }
+        adjsmup();//these function calls initialize the board
+        grid.forEach( (rw) => {rw.forEach((cll) => {celldraw(cll)})});
+    };
+
+
+	function getadjcells(cll)//This function returns a table of the addresses of adjacent cells. O(C)
+	{
+
+		let ecks = grid[0].length - 1,
+		    why = grid.length - 1,
+		    x = cll.pxr()/gx,
+		    y = cll.pyr()/gx,
+
+		    bx = (x === ecks) ? 0: x+ 1,//this function treats the grid as if the top is continuous with the bottom
+            by = (y === why) ? 0: y+1,//the same applies to the left and right
+		    lx = (x === 0) ? ecks: x-1,//effectively simulating a donut world which is my favorite kind of world
+		    ly = (y === 0) ? why: y-1,//not because I like donuts, but because the shape would make a donut world cool to live on
+
+            sc = [grid[ly][lx], grid[ly][x], grid[ly][bx],//the array was organized in this manner
+		          grid[y][lx],               grid[y][bx],//to make it easier to visualize the graphical relationship between the cells corresponding to each element in the array
+		          grid[by][lx], grid[by][x], grid[by][bx],];//the empty space in the center represents the cell for which this function is being called
+
+        return sc;
+	};
+
+
+	function adjsmup()//this funtion updates the "adjacentsum" property of each cell in "grid[]" to reflect the status of it's neighbors. O(N)
+	{
+            grid.forEach( (rw) =>//iterates through the entirety of "grid[]"
+			{   rw.forEach((cll) =>
+			    {
+                cll.adjacentsum = 0;//prevents "adjacentsum" from overflowing into an invalid range (greater than 8)
+	            var adjc = getadjcells(cll);
+
+	                adjc.forEach((ac) =>
+				    {
+					    if (ac.alive === true) cll.adjacentsum++;
+				    })
+			    })
+			});
+	};
+
+
+    function changecell()//This function updates the gamestate when called. O(N)
+	{
+		    grid.forEach( (rw) =>//iterates through the entirety of "grid[]"
+			{   rw.forEach((cll) =>
+				{
+
+	                if (cll.adjacentsum === 3) cll.alive = true;
+	                else if (cll.alive === true && cll.adjacentsum === 2) cll.alive = true;
+                    else cll.alive = false;//updates the "alive" property of every cell
+	                celldraw(cll);//calls celldraw to update the cell accordingly
+		        })
+	        });
+            adjsmup();//and then calls "adjsmup()" to reflect the update
+	};
+
+
+
+    function main()//This function starts a new game when called, and maintains the game until either a newgame is called, or the window is closed. O(C)
+	{//This function was taken from the in-class example provided by Professor Sabal
+            gridmake();//clears and creates the new board
+            modifyTimer = setInterval(changecell,500);//A future goal is to create a function for automatically ending the game under certain conditions, such as if all cells register as dead.
+    };
+
+
+</Script>
+
+
+</BODY>
+</HTML>

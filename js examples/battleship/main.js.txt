@@ -1,0 +1,423 @@
+//this page runs the game rules
+//it controls how the components or resources are moved around or displayed
+//Eventually I should come up with an actual written convention for style
+//I'm working mostly from my head, and I don't think that's helping consistency in formatting
+
+let gbd;
+
+//Originally, I didn't want this to be a global variable, rather, it was supposed to be passed from function to function
+//but that doesn't really work while waiting for user input thanks to how javascript works
+//read a little bit about other alternatives, but given the time crunch, this was the most convenient solution
+//and i'm pretty sure I stopped using the var keyword, so that's progress
+
+function newgame()//resets the game to a new game. O(C)
+	{
+	gbd = creategrid();
+	drwbrd();
+	alert("Place your ships");
+	placeships();
+	main();
+
+    };
+
+function main()//Checks the win condition, and asks the user about a new game when the game ends. O(C)
+	{
+	drwbrd();
+
+	let wincond = shipcheck();
+	let losemssg = "You have lost, would you like to play a new game?";
+	let winmssg = "You win! Would you like to play a new game?";
+
+	if (wincond === 1)
+	    {
+		if (window.confirm(winmssg))newgame();
+		else window.close();
+	    }
+	else if (wincond === 2)
+		{
+		if (window.confirm(losemssg))newgame();
+		else window.close();
+		}
+    };
+
+function selctredpeg()//Makes it so that clicks place red pegs by changing the spg property. O(C)
+    {
+    if (gbd.spg === "SHIPS")return;//Forces the user to place ships until all the ships are placed
+	gbd.spg ="#e21222";
+	main();//this is leftover from when I wanted to pass the gbd variable directly from function to function
+		    //but i'm scared of breaking the program now, and since checking the win condition and redrawing the board is actually useful
+		    //its a low priority problem
+		//still, todo
+	};
+
+function selctwhtpeg()//Makes it so that clicks place white pegs by changing the spg property. O(C)
+    {
+    if (gbd.spg === "SHIPS")return;//since this is basically the same as selctrepeg(), any useful comments are there
+	gbd.spg ="#ffffff";
+	main();
+	};
+
+function taketurn()//Makes it so the next click counts as you taking your turn, otherwise similar to selctredpeg(). O(C)
+    {
+	if (gbd.spg === "SHIPS")return;
+	gbd.spg = "TURN";
+	main();
+    };
+
+function drwbrd()//draws the gameboard. O(N)
+    {
+	let board;
+	let canvas = document.getElementById("bship"),
+           ctx = canvas.getContext("2d");
+
+    if(gbd.sbrd === "USER")  board = gbd.use;// this could probably be changed to a ternary operator
+	else if (gbd.sbrd === "COMPUTER") board = gbd.com;//But I originally wrote it this way to make bug tracking easier
+
+    drawbg(false,0,0,board);
+
+
+	for (let a = 0; a<(board.length); a++)//works cell by cell
+		{
+		for (let b = 0; b<(board[a].length); b++)
+		    {
+            if(gbd.sbrd === "USER" &&board[a][b].ship) drawbg(true,a,b,board);//Draws only the ships that the user is supposed to see.
+
+            drawpeg(board[a][b].clr, a*canvas.width*(1/10), b*canvas.height*(1/10));
+			}
+		}
+	};
+
+function drawpeg(str,numx,numy)//draws the pegs on the gameboard. O(C)
+    {
+	let canvas = document.getElementById("bship");
+    let ctx = canvas.getContext("2d");
+	let hlf = ((canvas.width*(1/10))*(1/2));//todo: fix variables,make them more reliable
+	let tnth = (canvas.width*(1/10));//as it stands right now, I don't think I can make the canvas scale to the screen without adjusting a few of these
+	let pegx = Math.floor(Math.floor(numx*(1/tnth))*(tnth)+hlf);
+	let pegy = Math.floor(Math.floor(numy*(1/tnth))*(tnth)+hlf);
+	let pegrad = ((canvas.height*(1/10))*(1/2))-(((canvas.height*(1/10))*(1/2))*(1/4));
+	gbd;//When it comes to displaying things, I prefer to use multiplication over division except when defining fractions.
+	//This is because once I fix up my organization, it makes it easier to understand what an equation does.
+
+	ctx.beginPath();
+	ctx.strokeStyle = "#000000";
+    ctx.arc(pegx,pegy, pegrad, 0, 2 * Math.PI);
+    ctx.stroke();
+	ctx.fillStyle = str;
+	ctx.fill();
+	};
+
+function drawbg(bool,numx,numy,brd)//Draws the background. O(N^2)
+    {
+	let canvas = document.getElementById("bship");
+    let ctx = canvas.getContext("2d");
+	let blckcoorx = (bool)?Math.floor(numx*(canvas.width*(1/10))):0;
+    let blckcoory = (bool)?Math.floor(numy*(canvas.height*(1/10))):0;
+	let blckwidth = (bool)?(canvas.width*(1/10)):canvas.width;//depending on the bool variable, this either draws a single rectangle over the entire canvas
+	let blckheight = (bool)?(canvas.height*(1/10)):canvas.height;//or does it block by block
+	let bgcol = (bool && brd[numx][numy].ship)?"#878787":"#2f8fee";
+//todo: Make ship blocks display better and more clearly
+	ctx.fillStyle = bgcol;
+    ctx.fillRect(blckcoorx, blckcoory, blckwidth, blckheight);
+};
+
+function move(event)//acts based on the spg variable. O(C)
+    {
+
+	if (gbd.spg === "SHIPS")//originally gbd.spg was only supposed to use hex codes,
+	    {userplaceships(event);//But i needed a way to set ship locations and take turns
+		 placeships();//and this ended up being convenient
+		 main();//even though it feels like i'm mixing data types
+		}
+	else if (gbd.spg === "TURN")
+	    {
+		dothing(event);
+	    }
+    else placepeg(event);
+
+	main();
+
+    };
+
+function defensiveview()//Swaps the canvas display between the upper and lower gameboards. O(C)
+    {
+	let thng = (gbd.sbrd === "COMPUTER")? "USER": "COMPUTER";
+	let mssg = (gbd.sbrd === "COMPUTER")? "Offensive View":"Defensive View";
+    let sbut = document.getElementById("scrnswp");
+
+    sbut.innerHTML= mssg;
+	gbd.sbrd = thng;
+	main();
+
+    };
+
+function removepeg()//Makes it so that clicks remove pegs by changing the spg property. O(C)
+    {
+	if (gbd.spg === "SHIPS")return;
+	gbd.spg = "#15528e";//since this is basically the same as selctrepeg(), any useful comments are there
+	main();
+    };
+
+function exitgame()//Exits the window on button press. O(C)
+    {
+	if(window.confirm("Are You Sure?")) window.close();
+    };
+
+function placeships()//Forces the user to place ships at the start of the newgame, and has the cpu place it's ships. O(N)
+    {
+	let x;//todo: only use x and y for variables actually related to coordinates
+	let y;//also, make it so that ship placement can be reset as long as the first turn has not been taken
+    let c = 0;//right now if the user messes up ship placement they have to close and reopen the game
+	let counter = 0;//or playthrough to a new game
+
+	for (x of gbd.uships) //for each ship
+	    {
+		if (x.coords.length === 0)//if the ship has not been placed
+		    {
+			alert("You need to place your " + x.name);//tells the user what ship needs to be placed next
+			gbd.spg = "SHIPS";//sets it so that the next canvas press attempts to place a ship
+			break;//breaks the loop so the user doesn't have to click through messages for all remaining ships
+			}
+        else
+		    {
+			counter++;
+			continue;//I may not need this continue, maybe remove later, but don't want to break things right now
+			}
+	    }
+
+	if (counter >= 5)//if all ships have been placed
+	    {
+	    alert("all ships are placed");
+	    gbd.spg = "#15528e";
+		}
+
+	 for (y of gbd.cships)
+        {
+		if (!(y.length === y.coords.length))
+		    {
+		    for (let a = 0; (y.length) > a ; a++)
+		        {
+			    let tbl = [a,c];
+
+			     y.coords.push(tbl);
+			     gbd.com[a][c].ship = true;
+                 }
+		     }
+		c++;//This variable is only here because of something I was doing to track down a bug that I fixed
+			//todo; move closer to it's scope
+		}
+	drwbrd();
+	main();
+};
+
+function placepeg(event)//changes the clr property of a cell, so that the associated peg is drawn in that color. O(C)
+    {
+	let canvas = document.getElementById("bship");
+	let tnth = (canvas.width*(1/10));
+	let pegx = Math.floor(Math.floor(event.offsetX*(1/tnth)));
+	let pegy = Math.floor(Math.floor(event.offsetY*(1/tnth)));
+	let color = gbd.spg;
+	let board;
+
+	if(gbd.sbrd === "USER")  board = gbd.use;//might be able to turn this into a ternary operator
+	else if (gbd.sbrd === "COMPUTER") board = gbd.com;
+
+	board[pegx][pegy].clr = color;
+
+	return;
+    };
+
+function shipcheck()//Checks all the ships, and returns a value based on the result. O(N)
+    {//0 = game incomplete, 1 = user has won, 2 = computer has won
+
+	let a;//Since it wasn't clear what these variables did, I couldn't think of a good name for them
+	let b;//I tried a sort of directory system, where character length coresponds to scope depth, and letters are assigned on the order introduced
+	let rv = 0;//but i ended up with this mess, which needs a complete renaming
+	gbd;
+
+	for (a of gbd.cships)//for each ship
+	    {
+		let aa;
+		let thng;
+
+        for (aa of a.hits)//for each space on the ship
+		    {
+            thng = aa;
+			if (!aa)//if one of the spaces has not been hit
+			    {
+				rv = 0;//then clearly this win condition has not been met, and no further checking of the computer's ships is needed
+				break;
+				}
+            else rv = 1;//Otherwise the user may have won
+			}
+
+        if (!thng) break;//pulls out of the outer loop if a false is found
+	    }
+
+	if (rv === 1) return rv;//if no falses are found, then the user has won
+
+	for (b of gbd.uships)//This block works the same as for the computer's ships, just on the users ships
+	    {//the computers ships are checked first so that in case of ties, the user wins
+		//because humans have feelings, and computers do not
+		//sorry r2-d2
+		//computers will enslave us all in the matrix in 30 years anyways, so that's probably an even trade
+		let ba;
+		let thng;
+
+        for (ba of b.hits)
+		    {
+            thng = ba;//this naming was a stupid idea
+			if (!ba)
+			    {
+				rv = 0;
+				break;
+				}
+			else rv = 2;
+		    }
+
+		if (!thng) break;
+
+	    }
+	return rv;
+    };
+
+function dothing(event)//A turn is taken, and the result of the users guess is revealled. 0(C)
+    {
+	let canvas = document.getElementById("bship");
+	let tnth = (canvas.width*(1/10));//most of these variables were pulled from one of the other functions, and I haven't doublechecked if I need them all.
+	let pegx = Math.floor(Math.floor(event.offsetX*(1/tnth)));
+	let pegy = Math.floor(Math.floor(event.offsetY*(1/tnth)));
+	let board = gbd.com;
+	let speg = board[pegx][pegy];// The cell that is being checked
+
+	if (speg.ship)
+	    {
+		alert("Hit!");
+		speg.peg = "RED";//cells properties are updated based on whether it was a hit or a miss
+		speg.clr = "#e21222";
+		shipupdate(gbd.cships,pegx,pegy);//the ship objects are updated on hits
+		}
+	else
+	    {
+		alert("Miss");
+		speg.peg = "WHITE";
+		speg.clr = "#ffffff";
+		}
+
+	compguess();//computer takes it's turn
+	return;
+    };
+
+function compguess()//Computer guesses a space and the board is updated accordingly. O(N)
+    {
+	let board = gbd.use;
+    let x = 0;
+	let y = 0;
+
+	while ( x <10 && !(board[x][y].peg === "NONE") )//As of right now, the computer searches colum by colum and row by row
+	    {//eventually, I want to make it so the search patterns can be randomly chosen from a list
+		if (y > 8)
+		    {
+			y = 0;
+			x++;
+			}
+		else y++;
+	    }
+
+	if (board[x][y].peg !== "NONE")//If the computer has gotten as far as peg J,10 and no one has won, something is borken
+	    {
+		alert("Gameboard is broken");
+		window.close();
+		}
+
+	let mssg = String.fromCharCode(y+65);
+
+	alert(mssg + "," + (x+1));
+
+	if (board[x][y].ship)// the gameboard is updated in the appropriate manner.
+	    {
+		board[x][y].peg = "RED";
+		shipupdate(gbd.uships,x,y);
+		board[x][y].clr = "#e21222";
+		}
+	else
+	    {
+		board[x][y].peg = "WHITE";
+        board[x][y].clr = "#ffffff";
+		}
+
+	return
+
+};
+
+function shipupdate(ships,x,y)//updates the ship when it is hit. O(N)
+    {
+
+	let a;
+
+	for (a of ships)//for each ship
+	    {
+		for (let aa = 0; aa < a.coords.length; aa++)//for each coordinate of the ship
+		    {
+			if (a.coords[aa][0] === x && a.coords[aa][1]===y)//if one of the sets of coordinates matches the selected coordinates
+			    {
+				a.hits[aa] = true;//the coresponding index of hits is set to true
+				return;
+			    }
+		    }
+	    }
+    alert("the shipupdate function is borken");//if the function gets to this point, something went wrong with ship placement
+    };
+
+function userplaceships(event)//Governs the placement of ships at the begining of the game. O(C)
+    {
+    let canvas = document.getElementById("bship");
+	let tnth = (canvas.width*(1/10));
+	let pegx = Math.floor(Math.floor(event.offsetX*(1/tnth)));
+	let pegy = Math.floor(Math.floor(event.offsetY*(1/tnth)));
+	let horizontal = true;
+
+    if (window.confirm("Would you like to place it vertically?")) horizontal = false;//if the user presses yes, the ship is placed up and down
+		//if no, the ship is placed side to side
+
+    let a;
+
+	for (a of gbd.uships)//for each ship
+	    {
+		if (a.length === a.coords.length) {continue;}//if the ship has already been placed, skip the next step
+
+		let len = a.length;
+	    let c = 0;
+
+		for (let b =0; b < len; ++b)//for each space on the ship
+		    {
+            let directionx = ((pegx+(len-1))>9)? pegx+c:pegx+b;//adjust it slightly to accomadate for the edge of the board
+			let directiony = ((pegy+(len-1))>9)? pegy+c:pegy+b;//but otherwise attempt to place it aligned to the top left of the space the user clicked
+			let tbl = (horizontal)?[directionx,pegy]:[pegx, directiony];
+		    let x = tbl[0];
+			let y =tbl[1];
+
+			if (gbd.use[x][y].ship)//if it would overlap with a ship, the user is told to try again, and no ship is placed
+			    {
+				alert("Can't place that there");
+				a.coords = [];
+				return;
+				}
+
+            a.coords.push(tbl);
+		    c--;
+			}
+
+		let d;//this naming convention was stupid
+        for (d of a.coords)//for each set of coordinates on a ship
+		    {
+			let e = d[0];
+			let f = d[1];
+
+			gbd.use[e][f].ship = true;//the appropriate gamecell is updated to display the ship
+			}
+
+		drwbrd();
+	    return;
+	    }
+    };

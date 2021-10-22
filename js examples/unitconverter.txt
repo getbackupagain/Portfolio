@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+		    <META charset="UTF-8" />
+		    <META name="viewport" content="width=device-width,  initial-scale=1.0" />
+		    <META name="author" content="Destry"/>
+		    <META name="description" content="turning numbers into other numbers"/>
+
+		    <TITLE>CIS231 Unit Converter</TITLE>
+
+
+<Script>
+
+//This program is for converting units.
+//the "swap" button displays the currently selected conversion, and can be pressed to cycle through the availible converions.
+//the "conversion" button executes the currently selected conversion on the current value entered into the user input field.
+//The result and it's units are displayed above the buttons, and below the user input field.
+//units of bear are based on a 500 pound bear (high average for a black bear, middle to low average for a brown or polar bear)
+//This program is designed to be easily expandable.
+//To add another conversion one only needs to add the conversion title, conversion factor, and the result unit to the correct arrays
+
+//error code #1 means that you have tried to expand the list of unit converions improperly
+//and the arrays "unitstxt", "unitsX", and "unitsR" are the wrong length
+//ensure that you have added the conversion title, conversion factor, and result units to the proper arrays
+//and that they all share the same index number
+
+            var plus1 = -1;//This variable keeps count of the button presses on "swap" (plus1 because function cycleC() adds 1 to it when called)
+                   //because the initial text on the button "swap" is "click me"
+                   //if I started with an initial value of 0 then the first conversion the user would be introduced to would be "lbs to kg"
+                   //however, the most relevant unit conversion for most people is "lbs to kg"
+                   //therefore by starting at -1, I don't have to shift the arrays over
+                   //and the function cycleC() prevents the program from going outside of a valid index number except on initial load up
+            var unitstxt = ["lbs to kg", "kg to lbs","lbs to bear","bear to lbs","bear to kg","kg to bear"];//The text on the conversions button (units-t-e-xt)
+            var unitsX = [.45359237, 2.20462, .002, 500, 226.796, .00440924];//The conversion factors; The conversion() function needs these to work properly. (units-X as in multiply)
+            var unitsR = ["lbs","kg","bear","lbs","kg","bear"];//The units of the result. (units-R-esult)
+
+            function cycleC() {//enables the user to cycle through the implemented unit conversions (cycleC-onversions)
+
+	        var swp = document.getElementById("swap"); //(swp because it points to the button called swap)
+
+	        if ((unitstxt.length - 1) > plus1)//This check ensures the user never cycles to an index number higher than there are elements in the array.
+			    {plus1++;//the user is cycled to the next availible conversion
+			    swp.innerHTML = unitstxt[plus1]}
+            else
+                {plus1 = 0;//resets the user to the begining of the list of conversions
+                swp.innerHTML = unitstxt[plus1]}
+}
+
+            function conversion() {// This function executes unit conversion
+		    var inputBox = Number(document.getElementById("box1").value); //points to the user inputted value from "box1" field
+		    var result = document.getElementById("result");//points to the "result" paragraph
+
+                result.innerHTML = (Math.round(100*(inputBox * unitsX[plus1])))/100 + " " + unitsR[plus1];//executes the conversion, and displays it.
+                                           //user input is multiplied by the appropriate factor of conversion,
+				                           //decimal is moved two places to the right,
+				                           //decimals are rounded off,
+				                           //decimal is moved two places to the left
+				                           //sends the result to the result paragraph
+				                           //result is displayed as "math result"+ space + unit
+				                           //this function was adapted from classwork with Professor Sabal
+}
+
+            if (unitstxt.length !== unitsX.length || unitstxt.length !== unitsR.length)//this conditional checks to make sure the arrays are all the same length.
+                {window.alert("there is an error with this conversion program (code #1)");//if the check fails the user recieves an alert,
+                window.close()}                                                        //and the window is closed.
+                                          //this block makes it easier to catch errors that would only be caught by testing everything individually
+
+
+</Script>
+
+</HEAD>
+<BODY>
+<h1 style="background-color:ForestGreen;text-align:center;" id="header">
+Destry's Units of Mass Converter.<br>
+!!Now with Bear!!
+</h1><!--Heading, so the user knows what they're getting into.-->
+
+<P id="p1" style="text-align:center;"> <INPUT type="number" id="box1" />
+</P><!-- User enters the value they wish to convert here-->
+
+<P id="result" style="text-align:center;">
+</P><!--The results are displayed here-->
+
+<P id="buttons" style="text-align:center;">
+<BUTTON id ="swap" onClick="cycleC()">click me</BUTTON><!--cycles through the possible unit conversions-->
+<!--"click me" text directs user to interact with it and learn how to cycle through the conversions-->
+
+<BUTTON id ="converter" onClick="conversion()">Convert</BUTTON><!--converts desired units-->
+</P>
+
+</BODY>
+</HTML>

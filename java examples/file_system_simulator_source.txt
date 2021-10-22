@@ -1,0 +1,463 @@
+//started 10:00 p.m. 9/27/2021
+//author: Destry Krepps
+//based on concepts from chapter 40 of the book
+//Operating Systems: Three Easy Pieces
+//Remzi H. Arpaci-Dusseau and Andrea C. Arpaci-Dusseau (University of Wisconsin-Madison)
+
+//it utilizes a superblock
+//inodes
+//pointers
+//directories
+//read/write/delete operations
+//a superblock
+//reserved space for inodes
+//reserved space for files
+//free space managment (bitmaps, next free space, etc...)
+
+//I had to scrap the original project because i was not getting any closer to finishing it and i started from scratch last night
+//This is a far less abstracted and more stripped down design
+//you can create files and directories
+//you can open files, and from there you can make changes, save changes, or delete the file
+//you can navigate directories downwards
+//or upwards
+//or exit the program
+//the program gives you prompts to explain most of it.
+
+
+import java.util.Scanner;
+
+public class Simulator {//the class that runs the simulation
+
+    Superblock superblock = new Superblock();//methods
+    Hdd c_drive = new Hdd();
+    boolean loop = true;
+
+    Simulator(){};//constructor
+
+    public static void main(String[] args) // O(c) runs the setup and the main loop
+    {
+        Simulator comp = new Simulator();//setup
+        int[] root_address = {0,0,0};
+        comp.c_drive.inode_blocks[0][0] = new Inode("main",root_address);
+        Superblock superblock = new Superblock();
+
+        while(comp.loop) comp.main_loop();//simulation loop
+
+    }
+
+    public void update()// O(n^2(c)) updates bitmaps and finds free inodes and files
+    {
+
+        // finds free files
+        for(int i = 0; i< c_drive.file_blocks.length; i++)
+        {
+            for(int j = 0; j< c_drive.file_blocks.length; j++)
+            {
+                if(c_drive.file_blocks[i][j] == null)superblock.empty_file_bitmap[i][j] = true;
+                else superblock.empty_file_bitmap[i][j] = false;//updates the free file bitmap accordingly
+            };
+        };
+
+        //finds free inodes
+        for(int i = 0; i< c_drive.inode_blocks.length; i++)
+        {
+            for(int j = 0; j< c_drive.inode_blocks.length; j++)
+            {
+                if(c_drive.inode_blocks[i][j]== null)superblock.inode_bitmap[i][j] = true;
+                else superblock.inode_bitmap[i][j] = false;//updates the inode bitmap accordingly
+            };
+        };
+
+        //finds the address of the first empty file block and sends it to the superblock
+        for(int i = 0; i< superblock.empty_file_bitmap.length; i++)
+        {
+            boolean break_loop = false;//this is here because when an empty slot is found it needs to break both loops
+
+            for(int j = 0; j< superblock.empty_file_bitmap[i].length; j++)
+            {
+                int[] current_block = {1,i,j};
+                if(superblock.empty_file_bitmap[i][j])
+                {
+                    superblock.nxt_free_block = current_block;//if an empty block is found, the loop is broken
+                    break_loop = true;//and so is the outer loop
+                    break;
+                }
+                else continue;
+            };
+            if(break_loop) break;
+        };
+
+        //finds the address of the first empty inode and sends it to the superblock
+        for(int i = 0; i< superblock.inode_bitmap.length; i++)//functions like the  previous loop, but for the next free inode
+        {
+            boolean break_loop = false;
+            for(int j = 0; j< superblock.inode_bitmap[i].length; j++)
+            {
+                int[] current_block = {0,i,j};
+                if(superblock.inode_bitmap[i][j])
+                {
+                    superblock.nxt_free_inode = current_block;
+                    break_loop = true;
+                    break;
+                }
+            };
+            if(break_loop) break;
+        };
+
+
+    };
+
+    public void update_pathname(String next_directory)// O(c) updates pathname when going deeper into the directory
+    {
+        this.superblock.pathname += "/";
+        this.superblock.pathname += next_directory;
+    };
+
+    public void update_pathname()// O(c) updates pathname when moving back to the root of the directory
+    {
+
+        for(int i = this.superblock.pathname.length()-1; i > 0; i--)
+        {
+            if(superblock.pathname.charAt(i) == '/')
+            {
+                superblock.pathname = superblock.pathname.substring(0,i);
+                return;
+            }
+        }
+    };
+
+    public void main_loop()// O(c) main loop of the program, everything in this function is executed once per loop
+    {
+        this.update();//updates the bitmaps
+        System.out.println("the commands are create, open, exit, return, and stats");
+        System.out.print("current folder ");
+        System.out.print(superblock.pathname);
+        System.out.println();
+        Scanner h_i_d = new Scanner(System.in);
+        String command = h_i_d.next();//computer takes in a command
+
+        if(command.toUpperCase().equals("CREATE")) this.create(); //computer interperets commands
+        else if(command.toUpperCase().equals("OPEN")) this.open_file();
+        else if(command.toUpperCase().equals("EXIT")) this.ext();
+        else if(command.toUpperCase().equals("STATS"))this.display_stats();
+        else if(command.toUpperCase().equals("RETURN")) this.rtrn();
+        else System.out.println("incorrect command");
+    };
+
+    public void display_stats()// O(n^2(c)) prints out the bitmaps, maybe add other stats in the future
+    {
+        System.out.println("file blocks");// prints the bitmap of file locations
+        for(int i = 0; i< c_drive.file_blocks.length; i++)
+        {
+            String line = "";
+            for(int j = 0; j< c_drive.file_blocks.length; j++)
+            {
+                if(c_drive.file_blocks[i][j] == null)line += "0";//empties are "0", files are "#"
+                else line += "#";
+            };
+            System.out.println(line);
+        };
+
+        System.out.println("inode blocks");//prints out inode bitmap
+
+        for(int i = 0; i< c_drive.inode_blocks.length; i++)
+        {
+            String line = "";
+            for(int j = 0; j< c_drive.inode_blocks.length; j++)
+            {
+                if(c_drive.inode_blocks[i][j]== null)line += "0";//empties are "0", files are "#"
+                else line += "#";
+            };
+            System.out.println(line);
+        };
+    };
+
+    public void create()// O(n) creates a file or directory
+    {
+        System.out.println("enter \"dir\" if creating a directory, enter \"file\" if creating a file");
+        //user is prompted to decide if they want to make a file or folder
+
+        int[] current_directory_address = superblock.current_dir_address;
+        Inode current_dir = this.c_drive.inode_blocks[current_directory_address[1]][current_directory_address[2]];
+
+        Scanner h_i_d = new Scanner(System.in);
+        String command = h_i_d.next();
+
+        if(command.toUpperCase().equals("DIR"))//if the user wants to make a directory
+        {
+            System.out.println("enter directory name");//they are prompted for a name
+            String command_2 = h_i_d.next();
+            if(this.check_for_match(command_2))//a check is performed to see if there is already an inode in that directory with that name
+            {
+                System.out.println("invalid name");//if name matches, the name is rejected and the function ends
+                return;
+            }
+            else
+            {
+                c_drive.inode_blocks[superblock.nxt_free_inode[1]][superblock.nxt_free_inode[2]] = new Inode(command_2,current_directory_address);
+                //if the name does not match, a new inode is created for that file
+
+                for(int x = 0; x < current_dir.dir_file_addresses.length; x++)//puts a pointer for the new inode in the directory
+                {//this loop iterates through the pointers in that folder
+
+                    if(c_drive.inode_blocks[current_dir.dir_file_addresses[x][1]][current_dir.dir_file_addresses[x][2]] == null || (current_dir.dir_file_addresses[x][1] == 0 && current_dir.dir_file_addresses[x][2] == 0))
+                    {//if a null pointer is found, or one with all zeroes, it is replaced with a pointer to the new inode
+                       current_dir.dir_file_addresses[x][0] = 0;
+                       current_dir.dir_file_addresses[x][1] = superblock.nxt_free_inode[1];
+                       current_dir.dir_file_addresses[x][2] = superblock.nxt_free_inode[2];
+                       break;
+                    }
+                    if(x ==  current_dir.dir_file_addresses.length - 1)//if the directory is out of space, it prompts the user and exits the function
+                    {
+                        System.out.println("directory has run out of space");
+                        return;
+                    }
+
+                }
+            };
+
+        }
+        else if(command.toUpperCase().equals("FILE"))//if new file is selected
+        {
+            System.out.println("enter file name");// the user is prompted for a name
+            String command_2 = h_i_d.next();
+            if(this.check_for_match(command_2))//and the name is checked for matches
+            {
+                System.out.println("invalid name");//if a match is found the user is prompted and the function ends
+                return;
+            }
+            else
+            {
+                c_drive.inode_blocks[superblock.nxt_free_inode[1]][superblock.nxt_free_inode[2]] = new Inode(command_2,current_directory_address, superblock.nxt_free_block);//new inode is created for the  file
+                for(int x = 0; x < current_dir.dir_file_addresses.length; x++)//puts a pointer in the directory
+                {
+                    if(c_drive.inode_blocks[current_dir.dir_file_addresses[x][1]][current_dir.dir_file_addresses[x][2]] == null || (current_dir.dir_file_addresses[x][1] == 0 && current_dir.dir_file_addresses[x][2] == 0))
+                    {//checks if there is an empty, or null pointer in the directory, and puts one in there
+                        current_dir.dir_file_addresses[x][0] = 0;
+                        current_dir.dir_file_addresses[x][1] = superblock.nxt_free_inode[1];
+                        current_dir.dir_file_addresses[x][2] = superblock.nxt_free_inode[2];
+                        break;
+                    }
+                    if(x ==  current_dir.dir_file_addresses.length - 1)//unless none is found
+                    {//in which case the user is prompted and the function ends
+                        System.out.println("directory has run out of space");
+                        return;
+                    }
+
+                }
+                System.out.println("enter file content");// the file content is created, which is just a string
+                String file_content = h_i_d.next();
+                c_drive.file_blocks[superblock.nxt_free_block[1]][superblock.nxt_free_block[2]] = file_content;
+            };
+        }
+        else// if the user gives an unanticipated prompt
+        {// the user is prompted and the function ends
+            System.out.println("invalid command");
+            return;
+        };
+
+    };
+
+    public boolean check_for_match(String search)// O(n) checks the current directory for if a file or directory of the same name exists
+    {
+        int[] current_directory_address = superblock.current_dir_address;//picks the current directory
+        Inode current_dir = this.c_drive.inode_blocks[current_directory_address[1]][current_directory_address[2]];
+        for(int i = 0; i < current_dir.dir_file_addresses.length; i++)//the directory contains pointers that point to inodes
+        {
+            int[] examine = {0, current_dir.dir_file_addresses[i][1], current_dir.dir_file_addresses[i][2]};
+            try {
+                if (this.return_inode(examine).file_name.equalsIgnoreCase(search))
+                    return true;// and the inodes are checked for name matches
+            }catch (Exception e)// there are notes related to a delete condition in the open_file() function that can be read in function return_inode()
+            {
+                current_dir.dir_file_addresses[i][0] = 0;
+                current_dir.dir_file_addresses[i][1] = 0;
+                current_dir.dir_file_addresses[i][2] = 0;
+
+            }
+        }
+        return false;
+    };
+
+    public int[] return_match(String search)// O(n) works the same as check_for_match, except it returns the pointer for the matched inode
+    {
+        int[] current_directory_address = superblock.current_dir_address;
+        Inode current_dir = this.c_drive.inode_blocks[current_directory_address[1]][current_directory_address[2]];//finds current directory
+        for(int i = 0; i < current_dir.dir_file_addresses.length; i++)//checks all the pointers for matches
+        {
+            int[] examine = {0,current_dir.dir_file_addresses[i][1],current_dir.dir_file_addresses[i][2]};
+            if(!(this.return_inode(examine) == null))
+            {
+                if(this.return_inode(examine).file_name.equals(search)) return examine;//returns a matching pointer
+            }
+            else
+            {
+                continue;
+            };
+
+        }
+        return null;//returns no pointer if none exists
+    };
+
+    public Inode return_inode(int[] address)// O(c) returns an inode at a given address
+    {
+        //related to the notes in both check_for_match() and open_file()
+        //i will refer to these functions as CFM and O_F respectively
+        //O_F calls CFM when checking a file name
+        //CFM in turn calls this function to get the inode from which it retrieves the file name
+        //however, O_F has a delete condition which only removes the inodes referencing a file, and not the pointer in the directory that CFM uses to find files
+        //which caused an error when CFM called on this function to return a non existent inode
+        //my solution was to make it so that if this function can't find an inode, it just returns a null
+        //in turn, if CFM recieves a null from this function, it clears the empty pointer and continues the search
+        try
+        {
+            return c_drive.inode_blocks[address[1]][address[2]];
+        }
+        catch(Exception e)
+        {
+            c_drive.inode_blocks[address[1]][address[2]] = null;
+            return null;
+        }
+    };
+
+    public void ext()// O(c) changes a variable so that the main loop terminates and the program ends
+    {
+        this.loop = false;
+    };
+
+    public void open_file()// O(n) opens an existing file or folder on the hdd and allows the user to perform operations on the opened file
+    {
+        Inode main = c_drive.inode_blocks[superblock.current_dir_address[1]][superblock.current_dir_address[2]];
+        System.out.println("enter file name");
+        Scanner h_i_d = new Scanner(System.in);//user selects a file name
+        String command = h_i_d.next();
+
+        if(command.equals(superblock.current_dir))//if the file name is the current folder
+        {
+            System.out.println("files in this folder are:");
+            for(int i = 0; i < main.dir_file_addresses.length; i++)//this loop iterates through the pointers in the folder
+            {
+                Inode file = c_drive.inode_blocks[main.dir_file_addresses[i][1]][main.dir_file_addresses[i][2]];
+                String file_name = file.file_name;
+                String mssg = "";
+                if(file_name.equalsIgnoreCase(superblock.current_dir) || file_name.equalsIgnoreCase("main"))continue;//it ignores null or empty pointers
+                if(file.dir) mssg += "/";//folders are prefixed with a forward slash
+                mssg += file_name;
+                System.out.println(mssg);//the name of the files/directories are printed and a newline is started
+            }
+            return;
+
+        }
+
+        if(this.check_for_match(command))//if a matching file/folder is found
+        {
+            int[] address_match = this.return_match(command);//the match is retrieved
+            Inode file_match = c_drive.inode_blocks[address_match[1]][address_match[2]];
+
+            if(file_match.dir)//if the file is a folder, the program descends one level into the folder
+            {
+                superblock.current_dir = file_match.file_name;//by setting the pointer of the current directory to the chosen folder
+                superblock.current_dir_address = new int[] {0,address_match[1],address_match[2]};
+                update_pathname(file_match.file_name);
+                return;
+            }
+            boolean loop = true;//if it is not a folder, the file is opened
+            while(loop) {//and the user is prompted to select different actions to perform on the file
+                System.out.println(c_drive.file_blocks[file_match.file_address[1]][file_match.file_address[2]]);
+                System.out.println("make alterations to the file");
+                String command_2 = h_i_d.next();//the user enters any string into the console
+                System.out.println("if you wish to commit your changes, type save");
+                System.out.println("if you wish to exit, type exit");
+                System.out.println("if you wish to delete the file, type delete");
+                System.out.println("if you wish to continue making changes, type anything else");
+                String command_3 = h_i_d.next();
+                if(command_3.equalsIgnoreCase("save"))//if save is selected the change is committed
+                {
+                    c_drive.file_blocks[file_match.file_address[1]][file_match.file_address[2]] = command_2;
+                }
+                if(command_3.equalsIgnoreCase("exit"))return;//if exit is selected the function ends
+                if(command_3.equalsIgnoreCase("delete"))//if delete is selected the associated inode is deleted
+                {
+                    c_drive.inode_blocks[address_match[1]][address_match[2]] = null;
+                    return;// there are notes regarding this delete condition in function and return_inode()
+                }
+                else continue;
+            }
+        }
+        else//if no file match is found, the name is rejected and the function ends
+        {
+            System.out.println("invalid name");
+            return;
+        }
+
+    };
+
+    public void rtrn() // O(c) goes back up one folder in the directory tree
+    {
+
+        int[] dir = superblock.current_dir_address;
+        if(dir[1] == 0 && dir[2] == 0)//checks if you are already at the root
+        {
+            System.out.println("already at root");
+            return;
+        }
+        Inode current_dir = c_drive.inode_blocks[dir[1]][dir[2]];//otherwise it changes the pointer of the current directory to the next folder up
+        this.superblock.current_dir_address = new int[] {0,current_dir.directory_location[1],current_dir.directory_location[2]};
+        update_pathname();//and updates the displayed pathname accordingly
+    };
+
+
+
+}
+
+class Hdd {
+
+    Inode[][] inode_blocks = new Inode[16][16];//self explanatory, inodes go here, and hold pointers
+    String[][] file_blocks = new String[32][32];//that point to locations here that hold the file content
+
+    Hdd(){}//constructor
+
+
+}
+
+class Superblock {
+
+    //I don't know if  the superblock actually holds these properties
+    //but the one of the reasons i had to scrap the last project was because everything was too spread out
+    //so here this stuff goes
+
+    String current_dir = "main";//name of the current directory
+    String pathname = "/main";//used for displaying where you are in the directory
+    int[] current_dir_address = {0,0,0}; //pointer to the inode of this directory
+
+    int[] nxt_free_block = {1,0,0};
+    int[] nxt_free_inode = {0,0,1};
+    boolean[][] inode_bitmap = new boolean[64][64];
+    boolean[][] empty_file_bitmap = new boolean[128][128];//these are for file allocation and are updated once per loop
+
+    public Superblock() {}//constructor
+}
+
+class Inode {
+
+    String file_name;
+    int[] file_address;
+    int[] directory_location;
+    boolean dir = false; //indicates if it is a file or directory
+    int[][] dir_file_addresses = new int[16][3]; // holds pointers to the inodes of folders and files in this directory
+
+    Inode(String name, int[] directory_location)//constructor for inodes that represent directories
+    {
+        this.file_name = name;
+        this.directory_location = directory_location;
+        this.dir= true;
+    };
+
+    Inode(String name, int[] directory_location, int[] file_address)//constructor for inodes that represent files
+    {
+        this.file_name = name;
+        this.directory_location = directory_location;
+        this.file_address = file_address;
+    };
+}
+

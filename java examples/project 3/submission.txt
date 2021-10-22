@@ -1,0 +1,628 @@
+//package Project_TTT.Starter;//commented out because intellij didn't like it, and I don't know what it does
+
+import java.lang.reflect.Array;
+import java.util.Scanner;
+
+
+public class TTT_Runner {//the overarching class that runs the game
+    public static void main(String[] args) {//runs the game. O(c)
+        TTT_board board = new TTT_board();
+        String[] assignment = board.x_or_o();//this method returns the piece for both the player and the ai
+
+
+        Player p1 = new Player(assignment[0], "Player 1");//new objects are initiated to represent the user
+        AIplayer ai = new AIplayer(assignment[1], "Allen Iverson");//and the AI
+
+        System.out.println("Welcome to Tic-Tac-Toe");//user prompt
+        System.out.println("Player 1 is " + p1.piece);
+        System.out.println("And Player 2 is " + ai.piece + " \n");
+
+
+        Double selector = Math.floor(Math.random()*10)%2;// a random number is pulled
+
+        if(selector == 0) {//if even, the player goes first
+
+            System.out.println("Player 1 places first.");//user prompt
+
+            Boolean gameOn = true;
+
+            while (gameOn) {//this while loop keeps the game active until it is won, or a draw is reached
+                String[] p1_move = p1.turn(board);//user moves first
+
+                board.placeMove(p1, p1_move);//the users move is placed in the array
+
+                if (board.isThereWinner() || board.isFullNoWinner()) {//the game checks if the user won or the game has reached a draw
+                    break;
+                }
+
+                String[] ai_move = ai.turn(board);//ai moves second
+
+                board.aiPlaceMove(ai, ai_move);// the ai's move is placed in the array
+
+                if (board.isThereWinner() || board.isFullNoWinner()) {//the game checks if the ai won or the game has reached a draw
+                    break;
+                }
+
+                gameOn = !board.isThereWinner();//if the game has not been won, the while loop continues
+
+                System.out.println(board.printBoard());//the board is printed before the next turn
+            }
+
+        }
+        else {//if odd, the ai goes first
+
+            System.out.println("Player 2 places first.");//user prompt
+
+            Boolean gameOn = true;
+
+            while (gameOn) {//this while loop keeps the game active until it is won, or a draw is reached
+
+
+                String[] ai_move = ai.turn(board);//ai moves second
+
+                board.aiPlaceMove(ai, ai_move);// the ai's move is placed in the array
+
+                if (board.isThereWinner() || board.isFullNoWinner()) {//the game checks if the ai won or the game has reached a draw
+                    break;
+                }
+
+
+                System.out.println(board.printBoard());//the board is printed before the next turn
+
+                String[] p1_move = p1.turn(board);//user moves first
+
+                board.placeMove(p1, p1_move);//the users move is placed in the array
+
+                if (board.isThereWinner() || board.isFullNoWinner()) {//the game checks if the user won or the game has reached a draw
+                    break;
+                }
+
+                gameOn = !board.isThereWinner();//if the game has not been won, the while loop continues
+
+            }
+        }
+
+        System.out.println(board.printBoard());//if the while loop has been broken, the game has been won
+        System.out.println(board.concludingmessage(ai,p1));//and a concluding prompt is displayed
+        System.out.println("Thanks for playing!");
+    }
+
+}
+
+class TTT_board {
+    String[][] board = new String[3][3];//the tic tac toe board
+
+    TTT_board() {//constructor
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                board[i][j] = " ";
+            }
+        }
+    }
+
+    String printBoard() {//this method iterates through the board and builds a string representation of a tic tac toe board. O(n)
+        String b_string = "\n";//this is the string that will be returned to be printed as a tic tac toe board
+
+        for(int i=0; i<board.length;i++) {
+            b_string += " ";//some spacing
+            for(int j=0; j<board[0].length;j++) {
+                b_string += board[i][j];
+                if (j != 2){
+                    b_string += " | ";//vertical lines
+                }
+            }
+            if (i!=2) {
+                b_string += "\n------------\n";//horizontal lines
+            }
+        }
+
+        return b_string + "\n";//returns the board
+    }
+
+    //Used By Instructor For Debugging
+    String rawPrint() {//O(n)
+        String b_string = "";
+
+        for(int i=0; i<board.length;i++) {
+            for(int j=0; j<board[0].length;j++) {
+                b_string += board[i][j] + " ";
+            }
+        }
+
+        return b_string;
+    }
+
+
+    Boolean isThereWinner() {// this method checks if the game has been won. O(n)
+        String[] winconditions = {
+                board[0][0],board[0][1],board[0][2],//top horizontal
+                board[1][0],board[1][1],board[1][2],//middle horizontal
+                board[2][0],board[2][1],board[2][2],//bottom horizontal
+                board[0][0],board[1][0],board[2][0],//left vertical
+                board[0][1],board[1][1],board[2][1],//center vertical
+                board[0][2],board[1][2],board[2][2],//right vertical
+                board[0][0],board[1][1],board[2][2],//top left to bottom right diagonal
+                board[0][2],board[1][1],board[2][0]//top right to bottom left diagonal
+        };
+
+        for(int x =0; x< winconditions.length; x++)
+        {
+
+            if(x%3 == 0 && !winconditions[x].isBlank()){//if there are three in a row then the method returns true
+                if(winconditions[x].equals(winconditions[x + 1]) && winconditions[x + 1].equals(winconditions[x + 2]))return true;
+            }
+        }
+
+
+
+        return false;//otherwise no one has won
+    }
+
+    Boolean isFullNoWinner() {//this method checks if the game ended in a draw. O(n)
+        if (isThereWinner()) {// if someone has won, there is no draw, obviously
+            return false;
+        }
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j].equals(" ")) {
+                    return false;//if the board isn't full, the game hasn't ended, obviously
+                }
+
+            }
+        }
+        return true;//if the code progresses to this point, then by process of elimination, the game must have ended in a draw
+    }
+
+    void placeMove(Player p, String[] pMove) {//this method sets the value of the user selected space to the user's piece. O(c)
+        String value = p.getPiece();
+        int row = Integer.parseInt(pMove[0]);
+        int col = Integer.parseInt(pMove[1]);
+        board[row][col] = value;
+    }
+
+    void aiPlaceMove(AIplayer p, String[] pMove) {//this method sets the value of the ai selected space to the ai's piece. O(c)
+        String value = p.getPiece();
+        int row = Integer.parseInt(pMove[0]);
+        int col = Integer.parseInt(pMove[1]);
+        board[row][col] = value;
+    }
+
+    Boolean isValidMove(int r, int c) {//this method checks if the given coordinates point to a valid empty space. O(c)
+        if (r > 2 || c > 2 || r < 0 || c < 0) {//checks if the coordinates point to a valid space
+            return false;
+        }
+        return board[r][c].equals(" ");//returns boolean true, if the space is empty. if it is full it returns false
+    }
+
+    public String[] x_or_o(){//assigns the pieces to the players randomly. O(c)
+
+        Double selector = Math.floor(Math.random()*10)%2;//pulls a random number.
+
+        String[] assignment = new String[2];
+        if(selector == 0.0d){assignment[0] = "X";assignment[1] = "O";}//assigns the pieces based on whether the random number is even or not
+        else {assignment[0] = "O";assignment[1] = "X";}
+
+        return assignment;//returns the pieces
+    }
+
+    public  String concludingmessage(AIplayer C, Player U){//returns a string based on who won. O(n)
+
+        String[] winconditions = {
+                board[0][0],board[0][1],board[0][2],//top horizontal
+                board[1][0],board[1][1],board[1][2],//middle horizontal
+                board[2][0],board[2][1],board[2][2],//bottom horizontal
+                board[0][0],board[1][0],board[2][0],//left vertical
+                board[0][1],board[1][1],board[2][1],//center vertical
+                board[0][2],board[1][2],board[2][2],//right vertical
+                board[0][0],board[1][1],board[2][2],//top left to bottom right diagonal
+                board[0][2],board[1][1],board[2][0]//top right to bottom left diagonal
+        };
+
+
+        for(int x =0; x< winconditions.length; x++)//cycles through the win conditions
+        {
+            if(x%3 == 0 && !winconditions[x].isBlank()){//starting at the begining of a win condition that isn't empty
+                if(winconditions[x].equals(winconditions[x + 1]) && winconditions[x + 1].equals(winconditions[x + 2])){//if all the pieces are the same
+                    if(winconditions[x].equals(C.piece)) return C.name + " Has won the game!";//and they match a players piece
+                    else return U.name + " Has won the game!";//the appropriate message is displayed
+
+                }
+            }
+        }
+
+        if(this.isFullNoWinner()) return "The game ends in a draw";//otherwise the game ends in a draw
+        else return "error";//or something is borken
+
+    }
+
+
+    //getter
+    String getValue(int r, int c) {
+        return board[r][c];
+    }
+}
+
+class Player {
+    String piece;//x or o
+    String name;//username
+    Scanner playerMove = new Scanner(System.in);//holds user input
+
+    Player(String s, String n) {//constructor
+        piece = s;
+        name = n;
+    }
+
+    String getPiece() {
+        return piece;
+    }//getters and setters
+    void setPiece(String s) {this.piece = s;}
+    String getName() {
+        return name;
+    }
+    void setName(String s) {this.name = s;}
+
+    String[] turn(TTT_board b) {//this method pulls user input. O(c)
+        System.out.println("Where would you like to go? (" + name + ")");//user prompt
+        System.out.println("(Type a row and a column, separated by a space, and hit enter.)");
+        String userInput = playerMove.nextLine();
+
+        String[] thisMove = userInput.split(" ");//takes the user input and converts it to a usable format
+
+        while(!b.isValidMove(Integer.parseInt(thisMove[0]), Integer.parseInt(thisMove[1]))) {
+            System.out.println("NOT A VALID MOVE, TRY AGAIN");//this loop catches invalid inputs
+            userInput = playerMove.nextLine();//and tries to get a valid input again
+            thisMove = userInput.split(" ");
+        }
+
+        return thisMove;//if the input is valid, this method returns the user input
+    }
+}
+
+class AIplayer {
+    String piece;//x or o
+    String name;//ai name for prompt purposes
+
+    AIplayer(String s, String n) {//constructor
+        piece = s;
+        name = n;
+    }
+
+    String getPiece() {
+        return piece;
+    }//getters and setters
+    void setPiece(String s) {this.piece = s;}
+    String getName() {
+        return name;
+    }
+    void setName(String s) {this.name = s;}
+
+    String[] turn(TTT_board b) {//this method is the method that the AI uses to return coordinates for the turn it wants to take. O(n)
+        //note that this method still needs the random turn method
+        //i wasn't able to cover every condition and i used that method to ensure a turn is always returned
+        //this isn't a perfect ai, but it's 11:10 pm and this needs to ship
+        //i should be using getters and setters, my javascript is showing, or i'm just bad
+
+        String[] thisMove = new String[2];//holds the r,c coordinates that the ai chooses
+        String myPiece = piece;
+        String enemyPiece;//this block of code determines for the Ai the piece that the user has
+
+        int[] winconditions = {//these integers will reference the coordinates in coords
+                0, 1, 2,//top horizontal
+                3, 4, 5,//middle horizontal
+                6, 7, 8,//bottom horizontal
+                0, 3, 6,//left vertical
+                1, 4, 7,//center vertical
+                2, 5, 8,//right vertical
+                0, 4, 8,//top left to bottom right diagonal
+                2, 4, 6//top right to bottom left diagonal
+        };
+        int[] nn = {0, 0};//This was probably unnecessarily complicated
+        int[] no = {0, 1};//I thought I was going to use the coords table more than I actually ended up doing
+        int[] np = {0, 2};
+        int[] on = {1, 0};
+        int[] oo = {1, 1};
+        int[] op = {1, 2};
+        int[] pn = {2, 0};
+        int[] po = {2, 1};
+        int[] pp = {2, 2};
+
+        int[][] coords = {// o = 0, n = negative = - , p = positive = +
+                nn, no, np,//     -- , -0 , -+
+                on, oo, op,//     0- , 00 , 0+
+                pn, po, pp //     +- , +0 , ++
+        };
+
+
+        if (this.piece.equals("X")) {//determines the piece the player has
+            enemyPiece = "O";
+        } else {
+            enemyPiece = "X";
+        }
+
+
+
+        for (int x = 0; x < winconditions.length; x++)//places in winning positions
+        {
+
+            if (x % 3 == 0) {//every three entries is a wincondition
+
+                String spot0 = b.board[coords[winconditions[x]][0]][coords[winconditions[x]][1]];
+                String spot1 = b.board[coords[winconditions[x + 1]][0]][coords[winconditions[x + 1]][1]];
+                String spot2 = b.board[coords[winconditions[x + 2]][0]][coords[winconditions[x + 2]][1]];
+                //oh boy, ok so basically this pulls the values in the board spaces that corespond to the win condition that the loop is looking at
+                //the coords array holds the coordinates that b.board needs, but nothing else
+                //the winconditions array holds the patterns that lead to winning, but not the coordinates
+                //therefore I used winconditions array to select the coordinates that lead to winconditions on the b.board array
+
+
+                if (spot0.isBlank() && spot1.equals(this.piece) && spot2.equals(this.piece)) { //assume that the ai has the x piece and e = empty, if e,x,x then the ai moves x,x,x
+                    thisMove[0] = Integer.toString(coords[winconditions[x]][0]);
+                    thisMove[1] = Integer.toString(coords[winconditions[x]][1]);
+                    return thisMove;
+                }
+
+                if (spot1.isBlank() && spot0.equals(this.piece) && spot2.equals(this.piece)) { //assume that the ai has the x piece and e = empty, if x,e,x then the ai moves x,x,x
+                    thisMove[0] = Integer.toString(coords[winconditions[x + 1]][0]);
+                    thisMove[1] = Integer.toString(coords[winconditions[x + 1]][1]);
+                    return thisMove;
+                }
+
+                if (spot2.isBlank() && spot0.equals(this.piece) && spot1.equals(this.piece)) {//assume that the ai has the x piece and e = empty, if x,x,e then the ai moves x,x,x
+                    thisMove[0] = Integer.toString(coords[winconditions[x + 2]][0]);
+                    thisMove[1] = Integer.toString(coords[winconditions[x + 2]][1]);
+                    return thisMove;
+                }
+
+            }
+        }
+
+        for (int x = 0; x < winconditions.length; x++)//forces draws
+        {
+
+            if (x % 3 == 0) {
+
+                String spot0 = b.board[coords[winconditions[x]][0]][coords[winconditions[x]][1]];
+                String spot1 = b.board[coords[winconditions[x + 1]][0]][coords[winconditions[x + 1]][1]];
+                String spot2 = b.board[coords[winconditions[x + 2]][0]][coords[winconditions[x + 2]][1]];
+                //same as my explanation in the "places in winning spaces" loop above
+
+
+                if (spot0.isBlank() && spot1.equals(enemyPiece) && spot2.equals(enemyPiece)) {//assume that the ai has the x piece and e = empty, if e,o,o then the ai moves x,o,o
+                    thisMove[0] = Integer.toString(coords[winconditions[x]][0]);
+                    thisMove[1] = Integer.toString(coords[winconditions[x]][1]);
+                    return thisMove;
+                }
+
+                if (spot1.isBlank() && spot0.equals(enemyPiece) && spot2.equals(enemyPiece)) {//assume that the ai has the x piece and e = empty, if o,e,o then the ai moves o,x,o
+                    thisMove[0] = Integer.toString(coords[winconditions[x + 1]][0]);
+                    thisMove[1] = Integer.toString(coords[winconditions[x + 1]][1]);
+                    return thisMove;
+                }
+
+                if (spot2.isBlank() && spot0.equals(enemyPiece) && spot1.equals(enemyPiece)) {//assume that the ai has the x piece and e = empty, if o,o,e then the ai moves o,o,x
+                    thisMove[0] = Integer.toString(coords[winconditions[x + 2]][0]);
+                    thisMove[1] = Integer.toString(coords[winconditions[x + 2]][1]);
+                    return thisMove;
+                }
+
+            }
+        }
+
+        int gameprogress = 0;//tracks how far the game has progressed
+
+        for (int r = 0; r < b.board.length; r++) {//counts the turns taken up to that point
+            for (int c = 0; c < b.board[r].length; c++) {
+                if (!b.board[r][c].isBlank()) gameprogress++;
+            }
+        }
+        //chooses strategy based on gamephase
+        if (gameprogress == 0) {//if it has the first move, the ai will chose the corner
+            thisMove[0] = Integer.toString(0);//eventually i would like it to be able to choose any corner
+            thisMove[1] = Integer.toString(0);//but unless i can come up with a better system, that causes game posibilities to explode beyond what i can deal with right now
+            return thisMove;
+        } else if (gameprogress == 1) {//unless the player has already chosen the center, it tries to take the center, otherwise, it tries to take the top left
+            if (!b.board[1][1].equals(enemyPiece)) {
+                thisMove[0] = Integer.toString(1);
+                thisMove[1] = Integer.toString(1);
+                return thisMove;
+            } else {
+                thisMove[0] = Integer.toString(0);
+                thisMove[1] = Integer.toString(0);
+                return thisMove;
+            }
+        } else if (gameprogress == 2) {//for this point forward, I had to look at the wikipedia page on tic tac toe for strategy  https://en.wikipedia.org/wiki/Tic-tac-toe
+            if (b.board[1][0].equals(enemyPiece) || b.board[1][1].equals(enemyPiece) || b.board[2][0].equals(enemyPiece)) {
+                thisMove[0] = Integer.toString(0);
+                thisMove[1] = Integer.toString(1);
+                return thisMove;
+
+                //if ai = x and e = empty space then:
+                //
+                //     x,e,e    x,e,e    x,e,e                     x,x,
+                // if  o,e,e || e,o,e || e,e,e then ai moves here   , ,
+                //     e,e,e    e,e,e    o,e,e                      , ,
+
+            } else if (b.board[2][1].equals(enemyPiece) || b.board[2][2].equals(enemyPiece)) {
+                thisMove[0] = Integer.toString(0);
+                thisMove[1] = Integer.toString(2);
+                return thisMove;
+
+                //if ai = x and e = empty space then:
+                //
+                //     x,e,e    x,e,e                      x, ,x
+                // if  e,e,e || e,e,e  then ai moves here   , ,
+                //     e,o,e    e,e,o                       , ,
+
+            } else if (b.board[0][1].equals(enemyPiece) || b.board[0][2].equals(enemyPiece)) {
+                thisMove[0] = Integer.toString(1);
+                thisMove[1] = Integer.toString(0);
+                return thisMove;
+
+                //if ai = x and e = empty space then:
+                //
+                //     x,o,e    x,e,o                      x, ,
+                // if  e,e,e || e,e,e  then ai moves here  x, ,
+                //     e,e,e    e,e,e                       , ,
+
+            } else {
+                thisMove[0] = Integer.toString(1);
+                thisMove[1] = Integer.toString(1);
+                return thisMove;
+            }
+        } else if (gameprogress == 3) {
+            //if the player is smart enough, they will usually have attempted to win at this point
+            //which the ai should be trying to block
+            //what follows covers many of the cases where the opposing player does not try to win
+            //itellij is telling me some of these conditions will never occur, so I will have to weed some of these out
+            if (b.board[0][0].equals(enemyPiece)) {
+                if (b.board[2][1].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(1);
+                    thisMove[1] = Integer.toString(2);
+                    return thisMove;
+                } else if (b.board[2][2].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(0);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                } else if (b.board[1][2].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(2);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                }
+            } else if (b.board[0][2].equals(enemyPiece)) {
+                if (b.board[1][0].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(2);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                } else if (b.board[2][0].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(0);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                } else if (b.board[2][1].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(1);
+                    thisMove[1] = Integer.toString(0);
+                    return thisMove;
+                }
+            } else if (b.board[2][0].equals(enemyPiece)) {
+                if (b.board[0][1].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(1);
+                    thisMove[1] = Integer.toString(2);
+                    return thisMove;
+                } else if (b.board[0][2].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(0);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                } else if (b.board[1][2].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(0);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                }
+            } else if (b.board[2][2].equals(enemyPiece)) {
+                if (b.board[1][0].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(0);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                } else if (b.board[0][0].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(0);
+                    thisMove[1] = Integer.toString(1);
+                    return thisMove;
+                } else if (b.board[0][1].equals(enemyPiece)) {
+                    thisMove[0] = Integer.toString(1);
+                    thisMove[1] = Integer.toString(0);
+                    return thisMove;
+                }
+            } else {
+                for (int x = 0; x < winconditions.length; x++)//this loop tries to set up the ai's own winning conditions
+                {
+
+                    if (x % 3 == 0) {//it works like the ones that plays wins and force draws, except that it sets up winning moves rather than executing them
+
+
+                        String spot0 = b.board[coords[winconditions[x]][0]][coords[winconditions[x]][1]];
+                        String spot1 = b.board[coords[winconditions[x + 1]][0]][coords[winconditions[x + 1]][1]];
+                        String spot2 = b.board[coords[winconditions[x + 2]][0]][coords[winconditions[x + 2]][1]];
+
+                        if (spot0.equals(this.piece) && spot1.isBlank() && spot2.isBlank()) {
+                            thisMove[0] = Integer.toString(coords[winconditions[x + 1]][0]);
+                            thisMove[1] = Integer.toString(coords[winconditions[x + 1]][1]);
+                            return thisMove;
+                        }
+
+                        if (spot1.equals(this.piece) && spot0.isBlank() && spot2.isBlank()) {
+                            thisMove[0] = Integer.toString(coords[winconditions[x]][0]);
+                            thisMove[1] = Integer.toString(coords[winconditions[x]][1]);
+                            return thisMove;
+                        }
+
+                        if (spot2.equals(this.piece) && spot0.isBlank() && spot1.isBlank()) {
+                            thisMove[0] = Integer.toString(coords[winconditions[x]][0]);
+                            thisMove[1] = Integer.toString(coords[winconditions[x]][1]);
+                            return thisMove;
+                        }
+
+                    }
+                }
+            }
+
+        } else {
+
+            for (int x = 0; x < winconditions.length; x++)//this loop tries to set up the ai's own winning conditions
+            {
+
+                if (x % 3 == 0) {//it works like the ones that plays wins and force draws, except that it sets up winning moves rather than executing them
+
+
+                    String spot0 = b.board[coords[winconditions[x]][0]][coords[winconditions[x]][1]];
+                    String spot1 = b.board[coords[winconditions[x + 1]][0]][coords[winconditions[x + 1]][1]];
+                    String spot2 = b.board[coords[winconditions[x + 2]][0]][coords[winconditions[x + 2]][1]];
+
+                    if (spot0.equals(this.piece) && spot1.isBlank() && spot2.isBlank()) {
+                        thisMove[0] = Integer.toString(coords[winconditions[x + 2]][0]);
+                        thisMove[1] = Integer.toString(coords[winconditions[x + 2]][1]);
+                        return thisMove;
+                    }
+
+                    if (spot1.equals(this.piece) && spot0.isBlank() && spot2.isBlank()) {
+                        thisMove[0] = Integer.toString(coords[winconditions[x]][0]);
+                        thisMove[1] = Integer.toString(coords[winconditions[x]][1]);
+                        return thisMove;
+                    }
+
+                    if (spot2.equals(this.piece) && spot0.isBlank() && spot1.isBlank()) {
+                        thisMove[0] = Integer.toString(coords[winconditions[x+1]][0]);
+                        thisMove[1] = Integer.toString(coords[winconditions[x+1]][1]);
+                        return thisMove;
+                    }
+
+                }
+            }
+        };
+        //by this point the loops that go for winning positions and draws should have taken over
+            //however in very rare cases that may not have happened
+        return randoTurn(b);//picking a random move ensures that a move is returned
+    }
+
+
+    String[] randoTurn (TTT_board b){//this method chooses a random availible space for the ai to choose. O(n)
+        System.out.println(this.name + "'s turn.");
+
+        int row = (int) (Math.random() * 3);//picks an initial random space
+        int col = (int) (Math.random() * 3);
+        String[] thisMove = {Integer.toString(row),
+                Integer.toString(col)};
+
+        while (!b.isValidMove(Integer.parseInt(thisMove[0]), Integer.parseInt(thisMove[1]))) {//checks if the chosen space is empty
+            System.out.println("A.I. CHOSE INVALID SPOT");//if it isn't, the code cycles through random numbers until it pulls valid coordinates
+            row = (int) (Math.random() * 3);
+            col = (int) (Math.random() * 3);
+            thisMove[0] = Integer.toString(row);
+            thisMove[1] = Integer.toString(col);
+
+        }
+
+        return thisMove;//returns the selected coordinates
+    }
+
+}
+
+
+

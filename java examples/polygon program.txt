@@ -1,0 +1,638 @@
+import java.util.Scanner;
+//This is the polygon program described in p-2.34
+//it prompts the user for polygons and dimensions
+//and spits out the area and the perimeter according to said dimensions
+//todo: clean up redundant commenting or hanging comments from copy pasting
+public class ShapeMaker {
+
+    public static void main(String[] args)//runs the user interface. O(c)
+    {
+     ShapeMaker myobj = new ShapeMaker();
+
+        for(int x = 0; x < 5; x++)//I don't like while loops
+        {
+            System.out.println("lets make shapes");
+            Scanner userinput = new Scanner(System.in);
+            String ui = userinput.nextLine();//todo:change variable name
+
+            try
+            {
+                if(ui.equalsIgnoreCase("EXIT"))System.exit(0);//allows user to exit the program
+                myobj.shapeindex(ui);
+            }
+            catch(Exception e)
+            {
+                System.out.println("that's not a shape, try again");
+            }
+        }
+        System.exit(0);//the program should not progress to this point, but i like to make sure
+    }
+
+    public void shapeindex(String shape)//chooses and builds the polygon appropriate to the user input. O(c)
+    {
+        /*
+        todo: This could be massively more concise, I just didn't have time to come up with a better model
+        todo: break off redundant code into another method
+        todo: remove redundant comments
+        todo: make a method for the user to exit the program between every prompt
+      */
+        String[] mssg = {"Your "," has an area of "," units, and a perimeter of "," units"};
+
+        if(shape.equalsIgnoreCase("TRIANGLE"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Triangle createdshape = new Triangle(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("QUADRILATERAL"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Quadrilateral createdshape = new Quadrilateral(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("PENTAGON"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Pentagon createdshape = new Pentagon(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("HEXAGON"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Hexagon createdshape = new Hexagon(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("OCTOGON"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Octagon createdshape = new Octagon(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("ISOSCELES TRIANGLE"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    double s = userinput.nextDouble();//this and the rectangle have an extra value
+                    System.out.println("How long should the base be?");
+                    double b = userinput.nextDouble();//so the user gets a second prompt
+                    Isosceles createdshape = new Isosceles(s,b);
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("EQUILATERAL TRIANGLE"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Equilateral createdshape = new Equilateral(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("RECTANGLE"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the rectangle be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    double l = userinput.nextDouble();
+                    System.out.println("How tall should the rectangle be?");
+                    double w = userinput.nextDouble();
+                    Rectangle createdshape = new Rectangle(l,w);
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else if(shape.equalsIgnoreCase("SQUARE"))//picks the appropriate shape
+        {
+            for(int x = 0; x < 5; x++)//i could use a while loop since it waits for user input before proceeding
+            {//but i don't like infinite loops no matter how justified
+                System.out.println("how long should the sides be?");
+                Scanner userinput = new Scanner(System.in);
+
+                try//once again, making sure the whole thing doesn't break when the user puts in something stupid
+                {
+                    Square createdshape = new Square(userinput.nextDouble());
+                    String fullmssg = mssg[0] +
+                            shape + mssg[1] + //message is compiled based on the created shape
+                            createdshape.area() +
+                            mssg[2] +
+                            createdshape.perimeter() +
+                            mssg[3];//arranged for readability
+                    System.out.println(fullmssg);
+                    return;//returns to main to do it all over again
+                }
+                catch(Exception e)
+                {
+                    System.out.println("That isn't a number");
+                }
+            }
+            System.exit(0);
+        }
+
+        else{
+            System.out.println("that's not a shape, try again");
+            return;//if the code progresses this far, then it was not a valid input, so the user must try again
+        }
+    }
+
+    interface Polygon
+    {
+        //methods
+        public double area();
+        public double perimeter();
+    }
+
+    public class Triangle implements Polygon
+    {
+        //values
+        public double sidel;
+        public double height = Math.pow(sidel, 2.0d) + Math.pow(sidel/2.0d, 2.0d);
+
+        //constructors
+        Triangle()
+        {
+            this.sidel = 1.0d;
+            this.height = Math.pow(sidel, 2.0d) + Math.pow(sidel/2.0d, 2.0d);
+        }
+
+        Triangle(double s)
+        {
+            this.sidel = s;
+            this.height = Math.pow(s, 2.0d) + Math.pow(s/2.0d, 2.0d);
+        }
+
+        //methods
+        public double area()
+        {
+            return (sidel*height)/2.0d;
+        }
+
+        public double perimeter()
+        {
+            return sidel*3.0d;
+        }
+
+        //getters and setters
+
+        public double getSidel() {
+            return sidel;
+        }
+
+        public void setSidel(double sidel) {
+            this.sidel = sidel;
+        }
+
+        public double getHeight() {
+            return height;
+        }
+
+        public void setHeight(double height) {
+            this.height = height;
+        }
+    }
+
+    public class Quadrilateral implements Polygon
+    {
+        //values
+        double sidel;
+
+        //constructors
+        Quadrilateral()
+        {
+            this.sidel = 1.0d;
+        }
+
+        Quadrilateral(double s)
+        {
+            this.sidel = s;
+        }
+
+
+        //methods
+        public double area()
+        {
+            return Math.pow(sidel,2.0d);
+        }
+
+        public double perimeter()
+        {
+            return 4.0d*sidel;
+        }
+
+        //getters and setters
+
+        public double getSidel() {
+            return sidel;
+        }
+
+        public void setSidel(double sidel) {
+            this.sidel = sidel;
+        }
+    }
+
+    public class Pentagon implements Polygon
+    {
+        //values
+        double sidel;
+
+        //constructors
+        Pentagon()
+        {
+            this.sidel = 1.0d;
+        }
+
+        Pentagon(double s)
+        {
+            this.sidel = s;
+        }
+
+        //methods
+        public double area()
+        {
+            return (Math.pow(sidel,2.0d)*Math.sqrt(25.0d+(10.0d*Math.sqrt(5.0d))))/4;
+        }
+
+        public double perimeter()
+        {
+            return 5.0d*sidel;
+        }
+
+        //getters and setters
+
+        public double getSidel() {
+            return sidel;
+        }
+
+        public void setSidel(double sidel) {
+            this.sidel = sidel;
+        }
+    }
+
+    public class Hexagon implements Polygon
+    {
+        //values
+        double sidel;
+
+        //constructors
+        Hexagon()
+        {
+            this.sidel = 1.0d;
+        }
+
+        Hexagon(double s)
+        {
+            this.sidel = s;
+        }
+
+
+        //methods
+        public double area()
+        {
+            return ((3*Math.sqrt(3.0d))/2)*sidel;
+        }
+
+        public double perimeter()
+        {
+            return sidel*6.0d;
+        }
+
+        //getters and setters
+
+        public double getSidel() {
+            return sidel;
+        }
+
+        public void setSidel(double sidel) {
+            this.sidel = sidel;
+        }
+    }
+
+    public class Octagon implements Polygon
+    {
+        //values
+        double sidel;
+
+        //constructors
+        Octagon()
+        {
+            this.sidel = 1.0d;
+        }
+
+        Octagon(double s)
+        {
+            this.sidel = s;
+        }
+
+        //methods
+        public double area()
+        {
+            return 2.0d*(1.0d+Math.sqrt(2.0d))*Math.pow(sidel,2.0d);
+        }
+
+        public double perimeter()
+        {
+            return sidel*8.0d;
+        }
+
+        //getters and setters
+
+        public double getSidel() {
+            return sidel;
+        }
+
+        public void setSidel(double sidel) {
+            this.sidel = sidel;
+        }
+    }
+
+    public class Isosceles extends Triangle
+    {
+        //values
+        public double base;
+        public double height = Math.pow(sidel, 2.0d) + Math.pow(base/2.0d, 2.0d);
+
+        //constructors
+        Isosceles()
+        {
+            this.sidel = 1.0d;
+            this.base = 0.5d;
+            this.height = Math.pow(sidel, 2.0d) + Math.pow(base/2.0d, 2.0d);
+        }
+
+        Isosceles(double s,double b)
+        {
+            this.sidel = s;
+            this.base = b;
+            this.height = Math.pow(s, 2.0d) + Math.pow(b/2.0d, 2.0d);
+        }
+
+        //methods
+        @Override
+        public double area() {
+            return (base*height)/2;
+        }
+
+        @Override
+        public double perimeter() {
+            return base+sidel*2;
+        }
+
+        //getters and setters
+
+        public double getBase() {
+            return base;
+        }
+
+        public void setBase(double base) {
+            this.base = base;
+        }
+
+
+    }
+
+    public class Equilateral extends Triangle
+    {
+        //values
+
+        //constructors
+        Equilateral()
+        {
+            this.sidel = 1.0d;
+            this.height = Math.pow(sidel, 2.0d) + Math.pow(sidel/2.0d, 2.0d);
+        }
+
+        Equilateral(double s)
+        {
+            this.sidel = s;
+            this.height = Math.pow(s, 2.0d) + Math.pow(s/2.0d, 2.0d);
+        }
+
+        //methods
+
+
+    }
+
+    public class Rectangle extends Quadrilateral
+    {
+        //values
+        public double sidew;
+
+        //constructors
+        Rectangle()
+        {
+            this.sidel = 1.0d;
+            this.sidew = 2.0d;
+        }
+
+        Rectangle(double l, double w)
+        {
+            this.sidel = l;
+            this.sidew = w;
+        }
+
+        //methods
+        @Override
+        public double area() {
+            return sidew*sidel;
+        }
+
+        @Override
+        public double perimeter() {
+            return 2.0d*sidel+2.0d*sidew;
+        }
+
+        //getters and setters
+
+        public double getSidew() {
+            return sidew;
+        }
+
+        public void setSidew(double sidew) {
+            this.sidew = sidew;
+        }
+    }
+
+    public class Square extends Quadrilateral
+    {
+        //values
+
+        //constructors
+        Square()
+        {
+            this.sidel = 1.0d;
+        }
+
+        Square(double s)
+        {
+            this.sidel = s;
+        }
+
+        //methods
+
+        //getters and setters
+
+
+    }
+}

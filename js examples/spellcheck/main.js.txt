@@ -1,0 +1,13 @@
+function wordscheck()
+		{
+			var userinput = document.getElementById("userthing").value;//1678 909 the quick brown fox,, jumped! over the layz dog, ya feel me right   !
+			var ucuserinput = userinput.toUpperCase();
+			var wordthing = ucuserinput.split(" ");// /[^ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890]/g
+			wordthing.forEach((wrd) => {var betterwrd = wrd.replace([^ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890]/g, " ";)})
+
+
+
+
+			wordthing.forEach((wrd) => {console.log(wrd)});
+
+		}

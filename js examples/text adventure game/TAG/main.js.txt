@@ -1,0 +1,162 @@
+//This is a text adventure game
+//The user inputs commands
+//commands that progress the game, do
+//commands that are not implemented simply return a "does not understand" message
+//instead of escaping a dungeon, the user's goal is to prepare it for some other hypothetical adventurer
+
+//the plan was to have a meta-text adventure
+//where the adventure was that you were trapped in a room and had to build a text adventure game
+//which you then had to play in order to escape from the room
+//the goal of the text adventure game, inside of the text adventure game, was to submit a homework assignment,
+//which itself was a text adventure game.
+//Real Christopher Nolan's "Inception" level stuff
+//I planned and worked on my game for 8 days
+//this is not that game
+//at 1 A.M. on thursday I realized I could not get the game functional by the deadline
+//I went to bed, and came up with this idea instead, in the thirty minutes before i fell asleep
+//thankfully I had enough foresight that main.js really only needed minor rewrites
+//but actions.js was scrapped and rebuilt from the ground up, keeping only some of the function names
+//and about 7 pages worth of heavy notes had to be thrown out
+
+//to my future self: give up on your dreams, and sleep in
+
+var currentlocation = "FIRST ROOM";//where the user is physically
+var vwrds = [//verb phrase words
+						        "LOOK","GO","PLACE","PAINT",
+								"EXIT","HELP","REFLECT",
+						        //prepositions or other
+						        "AROUND","TO","EVERYWHERE","ON","THE","FROM","IN",
+								//locations
+	                            "BOOKSHELF","TABLE","CAGE","FIRST","SECOND","THIRD","FOURTH","ROOM",
+	                            //items
+	                            "LION","KEY","BOOK"
+							];//all the words that are valid, other words throw a user message
+var gamecondition = {
+	keyontable:false,
+	bookonshelf:false,
+	roompainted:false,
+	lionincage:false
+};//keeps a track of the gamestate
+
+function cantunderstand()//provides a response indicating that the user command is invalid. O(C)
+            {//todo: add more responses, ideally up to ten, and then use rand in place of cutoff.
+            var rand = (Math.floor(Math.random()*10)+1);
+			var cutoff = rand%2;
+			var responses = ["are you sure that is english?","I can't understand you"];
+
+				display(responses[cutoff]);
+
+			};
+
+function getuserinput()//Takes the user input and converts it into a usable format. O(N)
+            {
+            var userinput = document.getElementById("userthing").value;
+			var ucuserinput = userinput.toUpperCase();//all strings in "wordlist" are uppercase,
+                //so the user input has to be converted into uppercase.
+            for (var x=0; x < ucuserinput.length; x++)//This for loop is for filtering out characters that are not letters
+              {//Spaces are kept to allow for splitting the string into words
+				  //all other characters are excluded.
+				  //for quick reference: space = 32, apostrophe = 39, hyphen = 45, digits = 48-57, uppercase letters = 65-90
+				 var code = ucuserinput.charCodeAt(x);
+				 var cr = ucuserinput.charAt(x);
+				 if (code <65 || 90 < code)
+					 ucuserinput = ucuserinput.replace(cr," ");//excluded characters are replaced with spaces
+			  }
+
+            var wordthing = ucuserinput.split(" ");//breaks up the user input
+
+            for (var y = 0; y < wordthing.length; y++ )//this for loop removes all empty strings
+			{
+			if (!(wordthing[y].length > 0)|| wordthing[y]==="THE")  {wordthing.splice(y,1); --y;}//note to self: the --y bit is super important
+				//otherwise the splice bit skips things
+				//"THE" is removed, to make things slightly less annoying for inputting valid commands
+            }
+
+	return wordthing;//returns an array of the words the user inputted.
+	};//This function was reused from my spellchecker, with some modifications
+
+
+function followcommand()//Attempts to execute the command the user inputted. 0(C)
+            {
+
+                var inputted = getuserinput();
+				var x;
+
+				for(x of inputted) if (!(validateuserinput(x,false))) {cantunderstand(); return};//checks if the command is composed of valid words
+
+
+                if(validateuserinput(inputted[0],true)) selectaction(inputted);//checks if the first word is valid verb
+				else {cantunderstand(); return}//if not, the command is considered invalid
+			 };
+
+
+function validateuserinput(str,vrbs)//Checks a string to see if it is on the list of valid words. O(C)
+            {
+
+                    var nlyvrbs = vwrds.slice(0,7);//If the second parameter is set as true, then the word is only checked against
+					var selected = (vrbs)? nlyvrbs: vwrds;//verbs, this is used to make sure a command is ordered in a valid way
+					var x;
+
+
+					for (x of selected) {if (x === str) return true;}
+                    return false;
+
+
+				};
+
+
+function display(str)//Displays a string recieved as a parameter, and displays a history of results. O(C)
+            {//todo: add functionality for displaying the commands, as well as the results
+				//and make more concise
+
+            document.getElementById("p1").innerHTML = document.getElementById("p2").innerHTML;
+            document.getElementById("p2").innerHTML = document.getElementById("p3").innerHTML;
+            document.getElementById("p3").innerHTML = document.getElementById("p4").innerHTML;
+            document.getElementById("p4").innerHTML = document.getElementById("p5").innerHTML;
+            document.getElementById("p5").innerHTML = str;
+
+			};
+
+
+function selectaction(tbl)//Selects the function from actions.js that coresponds to a given verb. O(C)
+             {
+
+                if (tbl[0] === "LOOK") laround(tbl);
+                else if (tbl[0] === "GO") gtwo(tbl);
+                else if (tbl[0] === "PLACE") place(tbl);
+                else if (tbl[0] === "PAINT") paint(tbl);
+                else if (tbl[0] === "HELP") help(tbl);
+                else if (tbl[0] === "REFLECT") reflect(tbl);
+                else cantunderstand();//Todo: This line might not be neccesary
+
+		    };
+
+
+function bg()//runs in the background, and executes the function that checks for the win condition. O(C)
+          {
+	        modifyTimer = setInterval(gameconditioncheck,500);
+          };
+
+function gameconditioncheck()//Checks if the victory condition is reached, and responds accordingly. o(C)
+               {//to do:
+	            //give this function's game reset functionality to a new action, like exit
+				   //but keep this as a mechanism for unlocking said function
+				   //and make more concise
+
+	        if (gamecondition.keyontable === true &&//if all of these properties are true, than the game is won
+		        gamecondition.bookonshelf === true &&
+	            gamecondition.roompainted === true &&
+	            gamecondition.lionincage === true)
+	                {
+		            if (window.confirm("Your shift has finished, would you like to set up another dungeon?"))
+                        {
+							gamecondition.keyontable = false;//resets the game
+		                    gamecondition.bookonshelf = false;
+	                        gamecondition.roompainted = false;
+	                        gamecondition.lionincage = false;
+		                    currentlocation = "FIRST ROOM";
+		                return
+						}
+	                 else window.close();//otherwise, the window is closed
+	                }
+				   };

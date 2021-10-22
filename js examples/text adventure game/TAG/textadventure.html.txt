@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+		<META charset="UTF-8" />
+		<META name="viewport" content="width=device-width,    initial-scale=1.0" />
+		<META name="author" content="Destry"/>
+		<META name="description" content="what this project is about"/>
+	    <Script src= "main.js"></Script>
+	    <Script src ="actions.js"></Script>
+
+		<TITLE>SpellChecker</TITLE>
+<!---->
+</HEAD>
+
+<BODY onLoad = "bg()"><!-- loads the function that checks for the win condition-->
+
+<H1 style="background-color:ForestGreen;text-align:center;" id="header">
+Destry's text adventure adventure
+</H1>
+
+
+<DIV id = "venture" style="text-align:center;"><!--I went with a multiparagraph setup to allow for a history of inputs-->
+<P id = "p1" style="text-align:center;"> Welcome to "The Text Adventure Company"! </P>
+<P id = "p2" style="text-align:center;"> We are the finest purveyors of text adventures in the world. </P>
+<P id = "p3" style="text-align:center;"> You are one of our engineers. </P>
+<P id = "p4" style="text-align:center;"> Your job is to get this text adventure dungeon ready for the next customer. </P>
+<P id = "p5" style="text-align:center;"> You have been given a key, a book, paint, and a lion. </P>
+</DIV>
+<br>
+
+
+<DIV id = "userinputs" style="text-align:center;">
+<TEXTAREA id = "userthing" rows ="1" cols ="32">what would you like to do?</TEXTAREA><!--The commands are short, by keeping the text box short, it forces the user to think in a short way-->
+<br>
+<BUTTON id ="checker" onclick ="followcommand()"><!--executes the command to the best of it's ability-->
+Submit
+</BUTTON>
+<br>
+<P id = "p0" style="text-align:center;">
+You can always ask for help
+</P>
+</DIV>
+
+</BODY>
+</HTML>

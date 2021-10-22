@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+		<META charset="UTF-8" />
+		<META name="viewport" content="width=device-width,    initial-scale=1.0" />
+		<META name="author" content="Destry"/>
+		<META name="description" content="what this project is about"/>
+	<Script src ="wordlist.js"></Script>
+	<Script src= "main.js"></Script>
+
+		<TITLE>Spellcheck</TITLE>
+
+
+
+</HEAD>
+
+<BODY>
+
+<h1 style="background-color:ForestGreen;text-align:center;" id="header">
+Destry's spellcheck thingy
+<b> It's judgmental!
+</h1>
+
+	<DIV id = "msspell">
+	</DIV>
+
+<TEXTAREA id = "userthing" rows ="16" cols ="64" style="text-align:center;">words go here</TEXTAREA>
+<BUTTON id ="checker" onclick ="wordscheck()">
+clickme
+	</BUTTON>
+
+</BODY>
+</HTML>

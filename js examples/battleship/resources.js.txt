@@ -1,0 +1,70 @@
+// This file is for the creation of game resources
+// Think of this like the pieces of the game
+// While main is more like the rulebook
+//Things like AI behavior were supposed to go here
+//as in, the AI was meant to have different behaviors every game
+//and this is where the different behaviors were going to be defined, but I didn't get that far with functionality
+//Might merge this file with main.js, I didn't expect the line counts to be so different
+//when i came up with the initial plan for organizing the program
+//eventually I also want to add a pallete system for all of the colors, instead of having to reference the hexcodes directly everytime
+
+function creategrid()//Creates the initial gameboard and components, like opening the gamebox. O(C)
+    {
+
+	let userships = shipslist();
+	let computerships = shipslist();
+    let gboards = {com:[],//computer's gameboard //This object is supposed to hold all the game components that are to be manipulated by the functions in main.js
+				   use:[],//users gameboard
+				   uships:userships,//what it sounds like
+				   cships:computerships,//ditto
+				   spg:"#15528e",//"Selected Peg" holds strings that control what clicks on the canvas do.
+				   sbrd:"USER"};//controls which gameboard is displayed
+
+	for (let a = 0; a<10; a++)//This algorithim assembles the grid
+		{
+		 let rw =[];
+		 let comrw =[];
+
+		 for (let b = 0; b<10; b++)
+			 {
+			let cell = {peg:"NONE",//the property that the computer looks at
+						ship:false,//is there a ship in that cell?
+						clr:"#15528e"};//color of the displayed peg
+            let comcell = {peg:"NONE",//These properties aren't all needed for both tables because of how the ai and displays work
+						   ship:false,//but I'm afraid of removing them in case it breaks something
+						   clr:"#15528e"}//and there are more important problems
+
+			rw.push(cell);
+			comrw.push(comcell);
+			 }
+
+		 gboards.com.push(comrw);
+		 gboards.use.push(rw);
+		}
+
+	return gboards;
+    };
+
+function shipslist()//Initializes the ship objects and defines their properties, except for placement. O(C)
+    {
+    let aircarr = { name:"Aircraft Carrier", length:5, hits:[], coords:[]};// the hits table track the hits on the ship, coords eventually will hold the ships location
+    let bship = {name:"Battleship", length:4,  hits:[], coords:[]};//It occurs to me that I may be able to add methods to these objects that may
+    let dstryr = {name:"Destroyer", length:3, hits:[], coords:[]};//simplify the rest of the program... eventually... filed under todo
+    let sub = {name:"Submarine", length:3, hits:[], coords:[]};
+    let ptbt = {name:"PT Boat", length:2, hits:[], coords:[]};
+    let tbl= [aircarr,
+		  bship,
+		  dstryr,
+		  sub,
+		  ptbt];
+    let x;//todo: stop using x as a variable, except when it is actually related to coordinates
+
+    for (x of tbl)
+        {
+		for (let a = 0; a < x.length; a++)
+			{
+			x.hits.push(false);//false indicates the ship haas not been hit in that cell
+			}//when the game is played, this is updated as needed
+		}
+    return tbl;
+	};
