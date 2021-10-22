@@ -1,11 +1,15 @@
 # Portfolio
 
-examples of my work thus far
+#examples of my work thus far
 
-todo:
+#todo:
 
-find python examples
-find the java river simulation
-find a good writing example
-make a better readme
-upload the new resume
+#find python examples
+
+#find the java river simulation
+
+#find a good writing example
+
+#make a better readme
+
+#upload the new resume
